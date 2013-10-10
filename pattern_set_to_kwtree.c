@@ -144,6 +144,7 @@ int fillPatternsArray(FILE *inputFP, char **patterns, int64_t *totalPatterns, in
 		}			
 	}	
 	
+	//sanity check
 	if(patternsCounter!=*totalPatterns)
 	{
 		printf("Unexpected error: estimated number of patterns is %ld but added %d\n",*totalPatterns,patternsCounter);

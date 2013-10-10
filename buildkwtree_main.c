@@ -20,7 +20,7 @@ main(int argc, char *argv[])
 	int64_t totalUniquePatterns=0;
 	KWTNode *tree;
 	int memoryMB;
-
+	
 	if(argc<4)
 	{
 		printf("./buildkwtree <patterns file name fullpath> <k-mer size> <memory_megabytes_available_for_kwtree> \n");

@@ -17,7 +17,7 @@
 //defines a node in the keyword tree
 typedef struct KWTNode
 {
-	INT children[SIGMA]; //if 0 - no child, if negative - leaf node - negated index in the array of counts
+	INT children[SIGMA]; //if 0 - no child, if negative at position 0 - leaf node - negated index in the array of counts
 	INT suffixLinkID; //if negative - no link - only happens for the root node - all the rest have links	
 }KWTNode;
 
@@ -64,7 +64,7 @@ typedef struct KWTreeInfo
 
 //In file 'pattern_set_to_kwtree.c'
 //fills in an array of k-mers from a given file
-int fillPatternsArray(FILE *inputFP, char **patterns, int64_t *totalPatterns, int k); 
+int fillPatternsArray(FILE *inputFP, char **patterns, int64_t *totalPatterns, int k);
 
 //collects total number of non-unique k-mers - to allocate memory
 int collectPatternsStats(FILE *inputFP, int k, int64_t *totalPatterns); 
@@ -77,7 +77,7 @@ int freeMemoryAfterKWtBuild (KWTreeBuildingManager* manager);
 
 //in file 'keyword_tree.c'
 int buildKeywordTree (KWTreeBuildingManager *manager, char **patterns, int64_t *numPatterns, int64_t *totalUniquePatterns);
-int streamOneString(KWTCounterManager *manager, INT *input, int length);
+int streamOneStringUnchanged(KWTCounterManager *manager, char *input, int strlength);
 int traverseAndRecordPatterns(KWTreeBuildingManager *manager, char *currentPattern, int posInPattern,
 	char **patterns, INT *newPatternCounter, int parentNodeID);
 int addSuffixLinks (KWTNode *tree, int totalNodes);
@@ -88,7 +88,7 @@ int streamAndCountOneFile(KWTCounterManager *manager);
 //commonly used utils - in file 'utils.c'
 int validChar(char c);
 int lenValidChars(char *currentLine, int lineLen);
-INT getCharValue(char c);
+int getCharValue(char c);
 char getCharFromINT(INT n);
 int validCharsToIntArray(char *line,int lineLength,INT *output);
 

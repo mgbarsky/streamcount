@@ -81,64 +81,71 @@ int buildKeywordTree (KWTreeBuildingManager *manager, char ** patterns, int64_t 
 	return 0;
 }
 
-//this takes one string of chars converted into INTs of alphabet, and streams this string through keyword tree
+//this takes one string of chars, and streams this string through keyword tree
 //when leaf node is reached - the count is incremented
 //The streaming takes at most 2N operations, where N is the length of the input string
-int streamOneString(KWTCounterManager *manager, INT *input, int length)
+int streamOneStringUnchanged(KWTCounterManager *manager, char *input, int strlength)
 {
 	int currentNodeID = 0; //start from the root
 	int currentPositionInInput = 0; //start from the first character
 	int found=0;
 	int suffixLinkID;
-	INT currentChar;
-
-	while (currentPositionInInput < length)
+	int currentChar;
+	int invalidChar = 0;
+	while (currentPositionInInput < strlength && !invalidChar)
 	{
-		currentChar = input[currentPositionInInput];
-		//case 1: there is a child currentChar out of a current node - we follow the path down the tree
-		if(manager->KWTree[currentNodeID].children[currentChar]>0)
+		currentChar = getCharValue(input[currentPositionInInput]);
+		if(currentChar<0)
+			invalidChar=1;
+		else
 		{
-			currentNodeID=manager->KWTree[currentNodeID].children[currentChar];
-			if(manager->KWTree[currentNodeID].children[0]<0) //leaf node - stores a negated pattern ID -  update counter
+			//case 1: there is a child currentChar out of a current node - we follow the path down the tree
+			if(manager->KWTree[currentNodeID].children[currentChar]>0)
 			{
-				if(manager->patternCounts[-manager->KWTree[currentNodeID].children[0]]<MAX_COUNT)
-					manager->patternCounts[-manager->KWTree[currentNodeID].children[0]]++;
-			}
-			currentPositionInInput++;
-		}
-		else //case 2. no child currentChar out of a current node
-		{
-			suffixLinkID =manager->KWTree[currentNodeID].suffixLinkID;
-			found =0;
-			while(suffixLinkID!=-1 && !found) //follows suffix link until finds outgoing edge for currentChar or reached the root - and there is no outgoing edge for currentChar
-			{
-				currentNodeID = suffixLinkID;
-				if(manager->KWTree[currentNodeID].children[currentChar]>0)
+				currentNodeID=manager->KWTree[currentNodeID].children[currentChar];
+				if(manager->KWTree[currentNodeID].children[0]<0) //leaf node - stores a negated pattern ID -  update counter
 				{
-					currentNodeID=manager->KWTree[currentNodeID].children[currentChar];
-					if(manager->KWTree[currentNodeID].children[0]<0) //leaf node - stores a negated pattern ID -  update counter
-					{
-						if(manager->patternCounts[-manager->KWTree[currentNodeID].children[0]]<MAX_COUNT)
-							manager->patternCounts[-manager->KWTree[currentNodeID].children[0]]++;
-					}
-					currentPositionInInput++;
-					found=1;
+					if(manager->patternCounts[-manager->KWTree[currentNodeID].children[0]]<MAX_COUNT)
+						manager->patternCounts[-manager->KWTree[currentNodeID].children[0]]++;
 				}
-				else
-				{
-					suffixLinkID= manager->KWTree[currentNodeID].suffixLinkID;  //follow up
-				}
-			}
-			
-			if(suffixLinkID == -1)  //reached the root and there is no appropriate child from the root - that means we need to start from the root and start from the next character
-			{
-				currentNodeID=0;
 				currentPositionInInput++;
-			}			
+			}
+			else //case 2. no child currentChar out of a current node
+			{
+				suffixLinkID =manager->KWTree[currentNodeID].suffixLinkID;
+				found =0;
+				while(suffixLinkID!=-1 && !found) //follows suffix link until finds outgoing edge for currentChar or reached the root - and there is no outgoing edge for currentChar
+				{
+					currentNodeID = suffixLinkID;
+					if(manager->KWTree[currentNodeID].children[currentChar]>0)
+					{
+						currentNodeID=manager->KWTree[currentNodeID].children[currentChar];
+						if(manager->KWTree[currentNodeID].children[0]<0) //leaf node - stores a negated pattern ID -  update counter
+						{
+							if(manager->patternCounts[-manager->KWTree[currentNodeID].children[0]]<MAX_COUNT)
+								manager->patternCounts[-manager->KWTree[currentNodeID].children[0]]++;
+						}
+						currentPositionInInput++;
+						found=1;
+					}
+					else
+					{
+						suffixLinkID= manager->KWTree[currentNodeID].suffixLinkID;  //follow up
+					}
+				}
+			
+				if(suffixLinkID == -1)  //reached the root and there is no appropriate child from the root - that means we need to start from the root and start from the next character
+				{
+					currentNodeID=0;
+					currentPositionInInput++;
+				}			
+			}
 		}		
 	}
+
 	return 0;
 }
+
 
 //this recursively traverses (DFT) the keyword tree to collect all unique patterns, which are stored back into patterns array starting from position 1
 //each leaf of the tree now stores a negated position of a pattern in this array at child[0]
