@@ -97,7 +97,10 @@ int countAll(GlobalArgs *globalArgs)
 			return 1;	
 
 		//output counters to a file
-		sprintf(currentFileName, "%s_%d-mers_COUNTS", manager.inputFileName, manager.k);
+		if(globalArgs->isOutputDirectory)
+			sprintf(currentFileName, "%s//%s_%d-mers_COUNTS", globalArgs->outputDirName, globalArgs->inputFiles[f],manager.k);
+		else
+			sprintf(currentFileName, "%s_%d-mers_COUNTS", manager.inputFileName, manager.k);
 		if(!(outputFP= fopen ( currentFileName , "wb" )))
 		{
 			printf("Could not open file \"%s\" for writing counts \n", currentFileName);

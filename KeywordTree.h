@@ -26,6 +26,8 @@ typedef struct GlobalArgs {
 	char **inputFiles; 		/* input files */
 	int numInputFiles;
 	int inputFilesFromCmdLine;
+	int isOutputDirectory;
+	char *outputDirName;
 } GlobalArgs;
 
 //defines a node in the keyword tree

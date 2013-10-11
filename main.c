@@ -7,13 +7,14 @@
 #include <getopt.h>
 #include "KeywordTree.h"
 
-static const char *optString = "cp:m:k:d:f:h?";        
+static const char *optString = "cp:m:k:d:f:o:h?";        
 
 static const struct option longOpts[] = {
 	{ "perform count", no_argument, NULL, 'c' },
 	{ "pattern file name", required_argument, NULL, 'p' },
 	{ "memory in MB", required_argument, NULL, 'm' },
 	{ "input directory", required_argument, NULL, 'd' },
+	{ "output directory", required_argument, NULL, 'o' },
 	{ "length of k-mer", required_argument, NULL, 'k' },
 	{ "file of inputs", required_argument, NULL, 'f' },
 	{ "help", no_argument, NULL, 'h' },
@@ -45,6 +46,7 @@ int main(int argc, char *argv[])
 	globalArgs.fileFileNames =NULL; 
 	globalArgs.numInputFiles =0;
 	globalArgs.inputFilesFromCmdLine =0;
+	globalArgs.isOutputDirectory =0;
 	FILE *inputFP;
 
 	opt = getopt_long( argc, argv, optString, longOpts, &longIndex );
@@ -72,7 +74,10 @@ int main(int argc, char *argv[])
 				globalArgs.isInputDirectory =1;  /* true */
                 		globalArgs.inputDirName = optarg;
                 		break;
-
+			case 'o':
+				globalArgs.isOutputDirectory =1;  /* true */
+                		globalArgs.outputDirName = optarg;
+                		break;
 			case 'f':
 				globalArgs.isFileWithFileNames=1;  /* true */
                 		globalArgs.fileFileNames = optarg;
