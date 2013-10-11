@@ -14,6 +14,20 @@
 #define DEBUG_SERIALIZATION 0
 #define DEBUG_COUNT 0
 
+typedef struct GlobalArgs {
+    	char *patternFileName;      	/* -p option */
+    	int memoryInMB;             	/* -m option */
+    	int countOrNot;    		/* -c option */
+    	int k;				/* -k option*/
+    	int isInputDirectory;    	/* -d option */
+    	char *inputDirName;          	/* directory to append before each input file */
+    	int isFileWithFileNames;        /* -f option */
+	char *fileFileNames;    	/* name of file containing file names */
+	char **inputFiles; 		/* input files */
+	int numInputFiles;
+	int inputFilesFromCmdLine;
+} GlobalArgs;
+
 //defines a node in the keyword tree
 typedef struct KWTNode
 {
@@ -38,8 +52,9 @@ typedef struct KWTCounterManager
 	INT totalPatterns; //total unique patterns to search - we are going to store that many counters per file, counters start from 1 in this array
 	KWTNode *KWTree; //keyword tree holding all patterns to be counted
 	UINT *patternCounts; //holds resulting count of each pattern - meaningful value begins from 1 in this array
-	char inputFileNamePrefix[MAX_PATH_LENGTH];
-	int currentFileID;	
+	char inputFileName[MAX_PATH_LENGTH]; //the name of a current file where counting is performed
+	char inputFileNamePrefix[MAX_PATH_LENGTH]; //deprecated left for compatibility with version 1
+	int currentFileID; //deprecated left for compatibility with version 1	
 }KWTCounterManager;
 
  //bookkeeping for building KWtree for pattern set
@@ -62,6 +77,9 @@ typedef struct KWTreeInfo
 	INT totalPatterns; //total unique patterns to search - we are going to store that many(-1) counters per file
 }KWTreeInfo;
 
+int performStreamCount(GlobalArgs *globalArgs);
+int preprocessPatternsIntoKeywordTree(GlobalArgs *globalArgs);
+int countAll(GlobalArgs *globalArgs);
 //In file 'pattern_set_to_kwtree.c'
 //fills in an array of k-mers from a given file
 int fillPatternsArray(FILE *inputFP, char **patterns, int64_t *totalPatterns, int k);
