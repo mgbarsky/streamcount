@@ -96,7 +96,7 @@ int countAll(GlobalArgs *globalArgs)
 		if(streamAndCountOneFile(&manager)!=0)
 			return 1;	
 
-		//output counters to a file
+		//output counters to a file		
 		if(globalArgs->isOutputDirectory)
 			sprintf(currentFileName, "%s//%s_%d-mers_COUNTS", globalArgs->outputDirName, globalArgs->inputFiles[f],manager.k);
 		else
@@ -115,6 +115,7 @@ int countAll(GlobalArgs *globalArgs)
 			return 1;
 		}
 		fclose(outputFP);
+		
 	}
 
 	//free allocated memory

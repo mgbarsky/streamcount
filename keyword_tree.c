@@ -4,21 +4,30 @@
 #include <string.h>
 #include "KeywordTree.h"
 
-int buildKeywordTree (KWTreeBuildingManager *manager, char ** patterns, int64_t *totalPatterns, int64_t *totalUniquePatterns)
+int buildKeywordTree (KWTreeBuildingManager *manager, char ** patterns, KmerInfo *patternsInfo, int64_t *totalPatterns, int64_t *totalUniquePatterns)
 {
 	int i,c;
 	int currentNodeID = 0;
-	
+	int maxNumberOfleaves = (manager->includeReverseComplement)? (*totalPatterns)*2:(*totalPatterns);
+	maxNumberOfleaves+=2;  //that's because we start counting from 1
+
 	INT currentCharAsINT;
-	INT newPatternCounter;
-	int numPatterns = *totalPatterns;
-	char *currentPattern = (char *)calloc(manager->k+1,sizeof (char *));
+	
+	int numUniquePatterns = maxNumberOfleaves;
+	int *repetitionFirstOccurrence = (int *)calloc(maxNumberOfleaves,sizeof (int));
+	char *rcPattern = (char *)calloc(manager->k+1,sizeof (char));
+	printf("Max number of leaves = %d\n",maxNumberOfleaves);
 
 	for(i=0;i<*totalPatterns;i++)
 	{
 		currentNodeID=0; //starting from the root
 		c=0; //starting from the first char
 		currentCharAsINT = getCharValue(patterns[i][c]);
+		if(currentCharAsINT<0)
+		{
+			printf("Why invalid char in the pattern?\n");
+			return 1;
+		}
 		//follow the path if exists
 		while (manager->KWtree[currentNodeID].children[currentCharAsINT]>0 && c<manager->k)
 		{			
@@ -28,11 +37,15 @@ int buildKeywordTree (KWTreeBuildingManager *manager, char ** patterns, int64_t 
 				currentCharAsINT = getCharValue(patterns[i][c]);
 		}
 		//there are 2 cases: either the entire pattern is already in the tree -
-		//in this case we remove it - duplicate - by marking first character of a pattern -1
+		//in this case we mark it - duplicate: repeated = 1; 
 		if(c==manager->k)
 		{
-			patterns[i][0]=-1;
-			numPatterns--;  //that is to test after removing duplicates
+			patternsInfo[i].repeated=1;
+			patternsInfo[i].counterID = - manager->KWtree[currentNodeID].children[0];
+
+			//also need to mark as repeated the first occurrence
+			patternsInfo[repetitionFirstOccurrence[- manager->KWtree[currentNodeID].children[0]]].repeated = 1;
+			numUniquePatterns--;  //removing duplicates
 		}
 		else
 		{
@@ -42,34 +55,78 @@ int buildKeywordTree (KWTreeBuildingManager *manager, char ** patterns, int64_t 
 				INT nextSlotID = manager->treeSlotsNum++;
 				currentCharAsINT = getCharValue(patterns[i][c]);
 				manager->KWtree[currentNodeID].children[currentCharAsINT] = nextSlotID;
-				currentNodeID=nextSlotID;
-				
+				currentNodeID=nextSlotID;				
 			}
 			//mark a leaf node
-			manager->KWtree[currentNodeID].children[0]=-(i+1); //pointer to a corresponding pattern
+			if(manager->treeLeavesNum >= maxNumberOfleaves)
+			{
+				printf("UNEXPECTED ERROR: number of leaves in the tree exceeded number of inserted patterns\n");
+				return 1;
+			}
+			manager->KWtree[currentNodeID].children[0]=-manager->treeLeavesNum; //pointer to a corresponding pattern
+			patternsInfo[i].counterID = manager->treeLeavesNum;
+			//record first occurrence of this pattern, in case it repeats later
+			repetitionFirstOccurrence[manager->treeLeavesNum] = i ;
+			
+			manager->treeLeavesNum++;
+			
+		}
+
+		//now repeat the same insertion but with reverse complement
+		if(manager->includeReverseComplement)
+		{
+			if(produceReverseComplement(patterns[i],rcPattern)!=0)
+				return 1;
+			currentNodeID=0; //starting from the root
+			c=0; //starting from the first char
+			currentCharAsINT = getCharValue(rcPattern[c]);
+			//follow the path if exists
+			while (manager->KWtree[currentNodeID].children[currentCharAsINT]>0 && c<manager->k)
+			{			
+				currentNodeID = manager->KWtree[currentNodeID].children[currentCharAsINT];
+				c++; 
+				if(c<manager->k)
+					currentCharAsINT = getCharValue(rcPattern[c]);
+			}
+			//there are 2 cases: either the entire pattern is already in the tree -
+			//in this case its original pattern has been already marked as duplicate
+			if(c == manager->k)
+			{
+				patternsInfo[i].rcCounterID = - manager->KWtree[currentNodeID].children[0];
+			}
+			else
+			{				
+				//add a new path for the remaining suffix
+				for(;c < manager->k;c++)
+				{
+					INT nextSlotID = manager->treeSlotsNum++;
+					currentCharAsINT = getCharValue(rcPattern[c]);
+					manager->KWtree[currentNodeID].children[currentCharAsINT] = nextSlotID;
+					currentNodeID=nextSlotID;				
+				}
+
+				if(manager->treeLeavesNum >= maxNumberOfleaves)
+				{
+					printf("UNEXPECTED ERROR 2: number of leaves in the tree exceeded number of inserted patterns\n");
+					return 1;
+				}	
+
+				//mark a leaf node
+				manager->KWtree[currentNodeID].children[0]=-manager->treeLeavesNum; //pointer to a corresponding pattern
+				patternsInfo[i].rcCounterID = manager->treeLeavesNum;			
+			
+				manager->treeLeavesNum++;
+							
+			}
 		}
 	}
 	
-	newPatternCounter=1; //we will store patterns starting from 1 - to make use of negative numbers
-	//traverse the tree and add a unique set of patterns - we will store them back into patterns array	
-	if(traverseAndRecordPatterns(manager, currentPattern,0, patterns, &newPatternCounter,0)!=0)
-		return 1;
 	
-	//sanity check
-	if(newPatternCounter!=numPatterns+1)
-	{
-		printf("Unexpected error: number %d of unique patterns is not equal to expected number %d\n",newPatternCounter,numPatterns);
-		return 1;
-	}
-
-	//set totalUniquePatterns - newPatternCounter
-	*totalUniquePatterns=newPatternCounter;
-	if(DEBUG_KWTREE)
-	{
-		printPatterns(patterns, newPatternCounter);
-	}
-	free(currentPattern);
-
+	//set totalUniquePatterns - numUniquePatterns
+	*totalUniquePatterns=numUniquePatterns;
+	
+	free(repetitionFirstOccurrence);
+	free(rcPattern);
 	 
 	if(addSuffixLinks (&(manager->KWtree[0]), manager->treeSlotsNum)!=0)
 		return 1;
@@ -143,46 +200,6 @@ int streamOneStringUnchanged(KWTCounterManager *manager, char *input, int strlen
 		}		
 	}
 
-	return 0;
-}
-
-
-//this recursively traverses (DFT) the keyword tree to collect all unique patterns, which are stored back into patterns array starting from position 1
-//each leaf of the tree now stores a negated position of a pattern in this array at child[0]
-int traverseAndRecordPatterns(KWTreeBuildingManager *manager, char *currentPattern, int posInPattern,
-	char **patterns, INT *newPatternCounter, int parentNodeID)
-{
-	INT i;
-	
-	//we reached the leaf
-	if(manager->KWtree[parentNodeID].children[0]<0)
-	{
-		//copy pattern to patterns array
-		memcpy(patterns[*newPatternCounter],currentPattern,manager->k);
-		patterns[*newPatternCounter][manager->k]='\0';
-
-		//update leaf node id
-		manager->KWtree[parentNodeID].children[0]=-(*newPatternCounter);
-		(*newPatternCounter)++;
-		
-	}
-
-	else
-	{
-		//loop through existing children
-		for(i=0;i<SIGMA;i++)
-		{
-			if(manager->KWtree[parentNodeID].children[i] >0)
-			{
-				char currentChar = getCharFromINT(i);
-				currentPattern[posInPattern] = currentChar;
-
-				//DFS - to reach the leaf
-				traverseAndRecordPatterns(manager, currentPattern, posInPattern+1,
-					patterns, newPatternCounter, manager->KWtree[parentNodeID].children[i] );
-			}
-		}
-	}
 	return 0;
 }
 
