@@ -1,0 +1,6 @@
+#!/bin/sh
+PATTERNSFILE="$1"
+K="$2"
+INPUTMODE="$4"
+FILETOPROCESS="$3"
+./streamcount -p $PATTERNSFILE -k $K -m 3000 -i $INPUTMODE -r -c $FILETOPROCESS
