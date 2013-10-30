@@ -78,10 +78,10 @@ so that they can be post-processed using different file manipulation tools
 
 ./countstotext 'patterns file name fullpath' 'size of k-mers' 'input file name(s) full path'
 
-This will convert counters array into a text file, each counter on a separate line
+This will convert an array of counters into a text file, each counter on a separate line
 
 ./patternsstotext 'patterns file name fullpath' 'size of k-mers'
 
-This will convert the information about the k-mers into a tabular format with the following columns:
-line number, start pos in this line, index in the array of counters, same index for reverse complement, repeated (no, yes)
+This will convert the information about k-mers into a tabular format with the following columns:
+line number, start pos in this line, index in the array of counters, same index for reverse complement, repeated (no-0, yes-1)
 
