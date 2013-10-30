@@ -49,6 +49,7 @@ Optional:
 -r If this option is specified, the reverse complement of each k-mer will be added to the set of k-mers
 
 -i Input mode for the extraction of k-mers: 
+
   0 - each line in the pattern file is treated as a separate line;
   1 - all lines of the input file are treated as one long string
 
@@ -56,10 +57,12 @@ Optional:
 In this case, you have to specify the input files where to perform the counting.
 
 There are 2 options:
+
 1. List all input files after all options, separated by space
+
 2. Provide a file with a list of file names, where each line contains the file name to be processed: -f 'file name'
 
-Additionaly, for both cases you can specify the relative path to the input files using option -d directory name
+Additionaly, for both cases you can specify the relative path to the input files using option -d 'directory name'
 
 Counting output:
 The counting will be performed in each specified file, and an array with counters will be saved to disk in a binary file
@@ -74,9 +77,11 @@ In this version there are two additional programs which convert binary outputs i
 so that they can be post-processed using different file manipulation tools
 
 ./countstotext 'patterns file name fullpath' 'size of k-mers' 'input file name(s) full path'
+
 This will convert counters array into a text file, each counter on a separate line
 
 ./patternsstotext 'patterns file name fullpath' 'size of k-mers'
+
 This will convert the information about the k-mers into a tabular format with the following columns:
 line number, start pos in this line, index in the array of counters, same index for reverse complement, repeated (no, yes)
 
