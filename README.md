@@ -85,3 +85,19 @@ This will convert an array of counters into a text file, each counter on a separ
 This will convert the information about k-mers into a tabular format with the following columns:
 line number, start pos in this line, index in the array of counters, same index for reverse complement, repeated (no-0, yes-1)
 
+Sample running scripts
+**********************
+You can run counting of 50-mers (with their reverse complements) in a separate file file1.fastq by running:
+
+./count_one_file.sh patterns.fasta 50 file1.fastq 1
+
+1 - is the input mode which tells to treat lines in patterns.fasta as one string, concatenating k-mers from different lines
+
+
+In order to perform counting on cluster (running SGE) run sample in streamfile.sh:
+
+./streamfiles.sh list_of_files.txt patterns.fasta 1
+
+This loops through all files in 'list_of_files.txt', and submits each file for counting 50-mers to a separate cluster node:
+
+qsub -cwd -b y -l h_vmem=4g ./count_one_file.sh $PATTERNSFILE "50" $FILENAME $INPUTMODE
