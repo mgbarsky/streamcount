@@ -30,6 +30,7 @@ where 'file name' is the full path and file name of the file from which to extra
 -k value of k
 
 If only these parameters are specified, the program will create a keyword tree to be used later.
+By default, k-mers are extracted from each separate line.
 The output keyword tree will be written into the same directory as the 'file name' in form of 3 files:
 
 1. 'file name'_k-mers_MAPPINGS - this is a binary file which contains an information for each extracted k-mer: 
