@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGOPT = -O3 -Wall -pg
+CFLAGOPT = -O3 -Wall 
 CFLAGS = -D_LARGEFILE_SOURCE
 CFLAGS += -fno-exceptions
 CFLAGS += -finline-functions
