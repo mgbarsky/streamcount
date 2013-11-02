@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <time.h>
 #include <string.h>
+#include <zlib.h>
 #include "KeywordTree.h"
 
 //second part of stream and count program
@@ -127,25 +128,24 @@ int countAll(GlobalArgs *globalArgs)
 
 int streamAndCountOneFile(KWTCounterManager *manager)
 {
-	FILE *inputFP;	
+	gzFile inputFP;	
 	char currentLine[MAX_CHARS_PER_LINE];
-	
 
 	//open file to read lines
-	if(!(inputFP= fopen ( manager->inputFileName , "r" )))
+	if(!( inputFP = gzopen ( manager->inputFileName , "r" )))
 	{
 		printf("Could not open input file \"%s\" for reading\n", manager->inputFileName);
 		return 1;
 	}
 
-	while( fgets (currentLine, MAX_CHARS_PER_LINE-10, inputFP)!=NULL ) 
-	{		
+	while( gzgets (inputFP, currentLine, MAX_CHARS_PER_LINE - 10) != NULL ) 
+	{
 		if(streamOneStringUnchanged(manager,currentLine,strlen(currentLine))!=0)
 		{
-			fclose(inputFP);
+			gzclose(inputFP);
 			return 1;
 		}	
 	}	
-	fclose(inputFP);
+	gzclose(inputFP);
 	return 0;	
 }
