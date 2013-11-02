@@ -13,27 +13,28 @@ int countAll(GlobalArgs *globalArgs)
 	KWTCounterManager manager; //bookkeper
 	char currentFileName[MAX_PATH_LENGTH];
 	KWTreeInfo newinfo[1];
-	FILE *inputFP, *outputFP;
+	FILE *kwInputFP;
+    FILE *outputFP;
 	int read, written;
 	int i;
 	int f;	
 
 	//try to read KWtree info from file
-	sprintf(currentFileName, "%s_%d-mers_KWTREE_INFO", globalArgs->patternFileName, globalArgs->k);
-	if(!(inputFP= fopen ( currentFileName , "rb" )))
+	snprintf(currentFileName, MAX_PATH_LENGTH, "%s_%d-mers_KWTREE_INFO", globalArgs->patternFileName, globalArgs->k);
+	if(!(kwInputFP = fopen ( currentFileName , "rb" )))
 	{
 		printf("Could not open file \"%s\" for reading saved KWtree info \n", currentFileName);
 		return 1;
 	}		
 	
-	read= fread (newinfo,sizeof(KWTreeInfo),1,inputFP);
+	read = fread (newinfo,sizeof(KWTreeInfo),1,kwInputFP);
 	if(read!=1)
 	{
 		printf("Error reading KWTinfo from file\n");
-		fclose(inputFP);
+		fclose(kwInputFP);
 		return 1;
 	}
-	fclose(inputFP);
+	fclose(kwInputFP);
 
 	//print new tree parameters read from file
 	printf("Read from file %s the following: totalNodes = %d, k=%d, totalPatterns=%d\n",
@@ -45,29 +46,28 @@ int countAll(GlobalArgs *globalArgs)
 	manager.totalPatterns = newinfo[0].totalPatterns;
 	
 	//allocate memory for KWT tree
-	if(!(manager.KWTree =(KWTNode *)calloc(manager.treeSlotsNum,sizeof (KWTNode))))
+	if(!(manager.KWTree = (KWTNode *)calloc(manager.treeSlotsNum,sizeof (KWTNode))))
 	{
 		printf("Unable to allocate memory to load keyword tree.\n");
 		return 1;
 	}
 	
 	//open file for reading a tree into RAM
-	sprintf(currentFileName, "%s_%d-mers_KWTREE", globalArgs->patternFileName, manager.k);
-	if(!(inputFP= fopen ( currentFileName , "rb" )))
+	snprintf(currentFileName, MAX_PATH_LENGTH, "%s_%d-mers_KWTREE", globalArgs->patternFileName, manager.k);
+	if(!(kwInputFP = fopen ( currentFileName , "rb" )))
 	{
 		printf("Could not open file \"%s\" for reading saved KWtree \n", currentFileName);
 		return 1;
 	}
-	
 
 	//read tree from file
-	read= fread (&(manager.KWTree[0]),sizeof(KWTNode),manager.treeSlotsNum,inputFP);
+	read= fread (&(manager.KWTree[0]), sizeof(KWTNode), manager.treeSlotsNum, kwInputFP);
 	if(read!=manager.treeSlotsNum)
 	{
 		printf("Error reading KWT tree from file: wanted to read %d nodes but read %d\n", manager.treeSlotsNum, read);
 		return 1;
 	}
-	fclose(inputFP);
+	fclose(kwInputFP);
 
 	//allocate memory for counters
 	if(!(manager.patternCounts =(UINT *)calloc(manager.totalPatterns,sizeof (UINT))))
