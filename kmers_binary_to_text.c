@@ -27,12 +27,12 @@ main(int argc, char *argv[])
 		return 1;
 	}
 	
-	sprintf(patternFileName,"%s", argv[1]);
+	snprintf(patternFileName, MAX_PATH_LENGTH, "%s", argv[1]);
 	
 	k=atoi(argv[2]);
 
 	//try to read k-mers info 
-	sprintf(currentFileName, "%s_%d-mers_MAPPINGS",  patternFileName, k);
+	snprintf(currentFileName, MAX_PATH_LENGTH, "%s_%d-mers_MAPPINGS",  patternFileName, k);
 	if(!(inputFP= fopen ( currentFileName , "rb" )))
 	{
 		printf("Could not open file \"%s\" for reading k-mer mapping \n", currentFileName);
@@ -65,7 +65,7 @@ main(int argc, char *argv[])
 	fclose(inputFP);
 	
 	//open text file for writing
-	sprintf(currentFileName, "%s_%d-mers_MAPPINGS.txt",  patternFileName, k);
+	snprintf(currentFileName, MAX_PATH_LENGTH, "%s_%d-mers_MAPPINGS.txt",  patternFileName, k);
 	if(!(outputFP= fopen ( currentFileName , "w" )))
 	{
 		printf("Could not open file \"%s\" for whriting textual k-mer info \n", currentFileName);

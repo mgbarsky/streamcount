@@ -122,7 +122,7 @@ int main(int argc, char *argv[])
 		else  //we are going to read a file that contains input file names
 		{
 			
-			sprintf(currentFileName,"%s", globalArgs.fileFileNames);
+			snprintf(currentFileName, MAX_PATH_LENGTH, "%s", globalArgs.fileFileNames);
 			
 			if(!(inputFP= fopen ( currentFileName , "r" )))
 			{
@@ -225,7 +225,7 @@ int process(GlobalArgs* globalArgs)
 	FILE *fp;
 	
 	//we are going to rebuild the keyword index if it does not exist
-	sprintf(currentFileName, "%s_%d-mers_KWTREE_INFO", globalArgs->patternFileName, globalArgs->k);
+	snprintf(currentFileName, MAX_PATH_LENGTH, "%s_%d-mers_KWTREE_INFO", globalArgs->patternFileName, globalArgs->k);
 
 	if(!(fp= fopen ( currentFileName , "rb" )))	
 		buildOrNot=1;
@@ -267,7 +267,7 @@ buildPatternIndex(GlobalArgs *globalArgs)
 	
 	int memoryMB;	
 	
-	sprintf(patternFileName,"%s", globalArgs->patternFileName);	
+	snprintf(patternFileName, MAX_PATH_LENGTH, "%s", globalArgs->patternFileName);	
 	manager.k = globalArgs->k;
 	manager.inputType = globalArgs->inputType;
 	manager.includeReverseComplement = globalArgs->includeReverseComplement;	
@@ -288,7 +288,7 @@ buildPatternIndex(GlobalArgs *globalArgs)
 	info[0].k=manager.k;
 	info[0].totalPatterns = totalUniquePatterns;
 
-	sprintf(currentFileName, "%s_%d-mers_KWTREE_INFO", patternFileName, manager.k);
+	snprintf(currentFileName, MAX_PATH_LENGTH, "%s_%d-mers_KWTREE_INFO", patternFileName, manager.k);
 
 	if(!(outputFP= fopen ( currentFileName , "wb" )))
 	{
@@ -307,7 +307,7 @@ buildPatternIndex(GlobalArgs *globalArgs)
 	fclose(outputFP);
 	
 	//serialize KWtree to disk
-	sprintf(currentFileName, "%s_%d-mers_KWTREE", patternFileName, manager.k);
+	snprintf(currentFileName, MAX_PATH_LENGTH, "%s_%d-mers_KWTREE", patternFileName, manager.k);
 	if(!(outputFP= fopen ( currentFileName , "wb" )))
 	{
 		printf("Could not open file \"%s\" for writing KWtree NODES \n", currentFileName);
