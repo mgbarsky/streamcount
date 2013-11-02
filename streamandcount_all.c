@@ -80,9 +80,9 @@ int countAll(GlobalArgs *globalArgs)
 	{
 		//counting in a specific input file 
 		if(globalArgs->isInputDirectory)
-			sprintf(manager.inputFileName,"%s//%s",globalArgs->inputDirName,globalArgs->inputFiles[f]);
+			snprintf(manager.inputFileName, MAX_PATH_LENGTH, "%s//%s",globalArgs->inputDirName,globalArgs->inputFiles[f]);
 		else
-			sprintf(manager.inputFileName,"%s",globalArgs->inputFiles[f]);
+			snprintf(manager.inputFileName, MAX_PATH_LENGTH, "%s",globalArgs->inputFiles[f]);
 
 		//reset counters from the previous file
 		if(f>0)
@@ -98,9 +98,9 @@ int countAll(GlobalArgs *globalArgs)
 
 		//output counters to a file		
 		if(globalArgs->isOutputDirectory)
-			sprintf(currentFileName, "%s//%s_%d-mers_COUNTS", globalArgs->outputDirName, globalArgs->inputFiles[f],manager.k);
+			snprintf(currentFileName, MAX_PATH_LENGTH, "%s//%s_%d-mers_COUNTS", globalArgs->outputDirName, globalArgs->inputFiles[f],manager.k);
 		else
-			sprintf(currentFileName, "%s_%d-mers_COUNTS", manager.inputFileName, manager.k);
+			snprintf(currentFileName, MAX_PATH_LENGTH, "%s_%d-mers_COUNTS", manager.inputFileName, manager.k);
 		if(!(outputFP= fopen ( currentFileName , "wb" )))
 		{
 			printf("Could not open file \"%s\" for writing counts \n", currentFileName);
