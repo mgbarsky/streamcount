@@ -9,17 +9,20 @@ LDFLAGS=-lz
 
 # Source files
 SC_SRC=utils.c keyword_tree.c pattern_set_to_kwtree.c streamandcount_all.c main.c
+SCU_SRC=utils.c keyword_tree.c pattern_set_to_kwtree.c streamandcount_all_unzipped.c main.c
 CT_SRC=counters_binary_to_text.c
 PT_SRC=kmers_binary_to_text.c
 
 # Binaries
-all: streamcount countstotext patternstotext
+all: streamcount countstotext patternstotext streamcountunzipped
 
 streamcount: $(SC_SRC)
 	$(CC) $(CFLAGOPT) $(CFLAGOFFSET) $(CFLAGS) $^ -o $@ $(LDFLAGS)
+streamcountunzipped: $(SCU_SRC)
+	$(CC) $(CFLAGOPT) $(CFLAGOFFSET) $(CFLAGS) $^ -o $@ 
 countstotext: $(CT_SRC)
 	$(CC) $(CFLAGOPT) $(CFLAGOFFSET) $(CFLAGS) $^ -o $@ $(LDFLAGS)
 patternstotext: $(PT_SRC)
 	$(CC) $(CFLAGOPT) $(CFLAGOFFSET) $(CFLAGS) $^ -o $@ $(LDFLAGS)
 clean:  
-	rm streamcount countstotext patternstotext
+	rm streamcount countstotext patternstotext streamcountunzipped
