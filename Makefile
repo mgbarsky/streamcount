@@ -16,10 +16,10 @@ PT_SRC=kmers_binary_to_text.c
 all: streamcount countstotext patternstotext
 
 streamcount: $(SC_SRC)
-	$(CC) $(CFLAGOPT) $(CFLAGOFFSET) $(CFLAGS) $(LDFLAGS) $^ -o $@
+	$(CC) $(CFLAGOPT) $(CFLAGOFFSET) $(CFLAGS) $^ -o $@ $(LDFLAGS)
 countstotext: $(CT_SRC)
-	$(CC) $(CFLAGOPT) $(CFLAGOFFSET) $(CFLAGS) $(LDFLAGS) $^ -o $@
+	$(CC) $(CFLAGOPT) $(CFLAGOFFSET) $(CFLAGS) $^ -o $@ $(LDFLAGS)
 patternstotext: $(PT_SRC)
-	$(CC) $(CFLAGOPT) $(CFLAGOFFSET) $(CFLAGS) $(LDFLAGS) $^ -o $@
+	$(CC) $(CFLAGOPT) $(CFLAGOFFSET) $(CFLAGS) $^ -o $@ $(LDFLAGS)
 clean:  
 	rm streamcount countstotext patternstotext

@@ -10,6 +10,12 @@ In the second part, each line of each input file is streamed through the keyword
 and the counters of the corresponding k-mers for this file are collected and serialized to disk.
 
 *************
+Dependencies:
+*************
+
+zlib
+
+*************
 To compile:
 *************
 make
