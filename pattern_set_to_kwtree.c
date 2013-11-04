@@ -110,7 +110,7 @@ int preprocessPatternSet(KWTreeBuildingManager *manager, char *patternsFileName,
 
 	//write patterns info to file - mapping from line number and position to actual leaf - position in the array of counters 
 	//open file for writing
-	sprintf(currentFileName, "%s_%d-mers_MAPPINGS",  patternsFileName,manager->k);
+	snprintf(currentFileName, MAX_PATH_LENGTH, "%s_%d-mers_MAPPINGS",  patternsFileName,manager->k);
 	if(!(outputFP= fopen ( currentFileName , "wb" )))
 	{
 		printf("Could not open file \"%s\" for writing k-mer mapping \n", currentFileName);

@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <time.h>
 #include <string.h>
+#include <zlib.h>
 #include "KeywordTree.h"
 
 //second part of stream and count program
@@ -13,27 +14,28 @@ int countAll(GlobalArgs *globalArgs)
 	KWTCounterManager manager; //bookkeper
 	char currentFileName[MAX_PATH_LENGTH];
 	KWTreeInfo newinfo[1];
-	FILE *inputFP, *outputFP;
+	FILE *kwInputFP;
+    FILE *outputFP;
 	int read, written;
 	int i;
 	int f;	
 
 	//try to read KWtree info from file
-	sprintf(currentFileName, "%s_%d-mers_KWTREE_INFO", globalArgs->patternFileName, globalArgs->k);
-	if(!(inputFP= fopen ( currentFileName , "rb" )))
+	snprintf(currentFileName, MAX_PATH_LENGTH, "%s_%d-mers_KWTREE_INFO", globalArgs->patternFileName, globalArgs->k);
+	if(!(kwInputFP = fopen ( currentFileName , "rb" )))
 	{
 		printf("Could not open file \"%s\" for reading saved KWtree info \n", currentFileName);
 		return 1;
 	}		
 	
-	read= fread (newinfo,sizeof(KWTreeInfo),1,inputFP);
+	read = fread (newinfo,sizeof(KWTreeInfo),1,kwInputFP);
 	if(read!=1)
 	{
 		printf("Error reading KWTinfo from file\n");
-		fclose(inputFP);
+		fclose(kwInputFP);
 		return 1;
 	}
-	fclose(inputFP);
+	fclose(kwInputFP);
 
 	//print new tree parameters read from file
 	printf("Read from file %s the following: totalNodes = %d, k=%d, totalPatterns=%d\n",
@@ -45,29 +47,28 @@ int countAll(GlobalArgs *globalArgs)
 	manager.totalPatterns = newinfo[0].totalPatterns;
 	
 	//allocate memory for KWT tree
-	if(!(manager.KWTree =(KWTNode *)calloc(manager.treeSlotsNum,sizeof (KWTNode))))
+	if(!(manager.KWTree = (KWTNode *)calloc(manager.treeSlotsNum,sizeof (KWTNode))))
 	{
 		printf("Unable to allocate memory to load keyword tree.\n");
 		return 1;
 	}
 	
 	//open file for reading a tree into RAM
-	sprintf(currentFileName, "%s_%d-mers_KWTREE", globalArgs->patternFileName, manager.k);
-	if(!(inputFP= fopen ( currentFileName , "rb" )))
+	snprintf(currentFileName, MAX_PATH_LENGTH, "%s_%d-mers_KWTREE", globalArgs->patternFileName, manager.k);
+	if(!(kwInputFP = fopen ( currentFileName , "rb" )))
 	{
 		printf("Could not open file \"%s\" for reading saved KWtree \n", currentFileName);
 		return 1;
 	}
-	
 
 	//read tree from file
-	read= fread (&(manager.KWTree[0]),sizeof(KWTNode),manager.treeSlotsNum,inputFP);
+	read= fread (&(manager.KWTree[0]), sizeof(KWTNode), manager.treeSlotsNum, kwInputFP);
 	if(read!=manager.treeSlotsNum)
 	{
 		printf("Error reading KWT tree from file: wanted to read %d nodes but read %d\n", manager.treeSlotsNum, read);
 		return 1;
 	}
-	fclose(inputFP);
+	fclose(kwInputFP);
 
 	//allocate memory for counters
 	if(!(manager.patternCounts =(UINT *)calloc(manager.totalPatterns,sizeof (UINT))))
@@ -80,9 +81,9 @@ int countAll(GlobalArgs *globalArgs)
 	{
 		//counting in a specific input file 
 		if(globalArgs->isInputDirectory)
-			sprintf(manager.inputFileName,"%s//%s",globalArgs->inputDirName,globalArgs->inputFiles[f]);
+			snprintf(manager.inputFileName, MAX_PATH_LENGTH, "%s//%s",globalArgs->inputDirName,globalArgs->inputFiles[f]);
 		else
-			sprintf(manager.inputFileName,"%s",globalArgs->inputFiles[f]);
+			snprintf(manager.inputFileName, MAX_PATH_LENGTH, "%s",globalArgs->inputFiles[f]);
 
 		//reset counters from the previous file
 		if(f>0)
@@ -98,9 +99,9 @@ int countAll(GlobalArgs *globalArgs)
 
 		//output counters to a file		
 		if(globalArgs->isOutputDirectory)
-			sprintf(currentFileName, "%s//%s_%d-mers_COUNTS", globalArgs->outputDirName, globalArgs->inputFiles[f],manager.k);
+			snprintf(currentFileName, MAX_PATH_LENGTH, "%s//%s_%d-mers_COUNTS", globalArgs->outputDirName, globalArgs->inputFiles[f],manager.k);
 		else
-			sprintf(currentFileName, "%s_%d-mers_COUNTS", manager.inputFileName, manager.k);
+			snprintf(currentFileName, MAX_PATH_LENGTH, "%s_%d-mers_COUNTS", manager.inputFileName, manager.k);
 		if(!(outputFP= fopen ( currentFileName , "wb" )))
 		{
 			printf("Could not open file \"%s\" for writing counts \n", currentFileName);
@@ -127,25 +128,24 @@ int countAll(GlobalArgs *globalArgs)
 
 int streamAndCountOneFile(KWTCounterManager *manager)
 {
-	FILE *inputFP;	
+	gzFile inputFP;	
 	char currentLine[MAX_CHARS_PER_LINE];
-	
 
 	//open file to read lines
-	if(!(inputFP= fopen ( manager->inputFileName , "r" )))
+	if(!( inputFP = gzopen ( manager->inputFileName , "r" )))
 	{
 		printf("Could not open input file \"%s\" for reading\n", manager->inputFileName);
 		return 1;
 	}
 
-	while( fgets (currentLine, MAX_CHARS_PER_LINE-10, inputFP)!=NULL ) 
-	{		
+	while( gzgets (inputFP, currentLine, MAX_CHARS_PER_LINE - 10) != NULL ) 
+	{
 		if(streamOneStringUnchanged(manager,currentLine,strlen(currentLine))!=0)
 		{
-			fclose(inputFP);
+			gzclose(inputFP);
 			return 1;
 		}	
 	}	
-	fclose(inputFP);
+	gzclose(inputFP);
 	return 0;	
 }

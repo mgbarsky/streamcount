@@ -26,12 +26,12 @@ main(int argc, char *argv[])
 		return 1;
 	}
 	
-	sprintf(patternFileName,"%s", argv[1]);
+	snprintf(patternFileName, MAX_PATH_LENGTH, "%s", argv[1]);
 	
 	k=atoi(argv[2]);
 
 	//try to read KWtree info file to find out the size of the counters array
-	sprintf(currentFileName, "%s_%d-mers_KWTREE_INFO", patternFileName, k);
+	snprintf(currentFileName, MAX_PATH_LENGTH, "%s_%d-mers_KWTREE_INFO", patternFileName, k);
 	if(!(inputFP= fopen ( currentFileName , "rb" )))
 	{
 		printf("Could not open file \"%s\" for reading saved KWtree info \n", currentFileName);
@@ -61,7 +61,7 @@ main(int argc, char *argv[])
 	//go in the loop through remaining arguments which are the names of the processed files
 	for(i=3; i<argc; i++)
 	{
-		sprintf(currentFileName, "%s_%d-mers_COUNTS", argv[i], k);
+		snprintf(currentFileName, MAX_PATH_LENGTH, "%s_%d-mers_COUNTS", argv[i], k);
 		if(!(inputFP= fopen ( currentFileName , "rb" )))
 		{
 			printf("Could not open file \"%s\" for reading binary counters \n", currentFileName);
@@ -77,7 +77,7 @@ main(int argc, char *argv[])
 		fclose(inputFP);
 
 		//open text file for writing
-		sprintf(currentFileName, "%s_%d-mers_COUNTS.txt", argv[i], k);
+		snprintf(currentFileName, MAX_PATH_LENGTH, "%s_%d-mers_COUNTS.txt", argv[i], k);
 		if(!(outputFP= fopen ( currentFileName , "w" )))
 		{
 			printf("Could not open file \"%s\" for whiting textual counters \n", currentFileName);
