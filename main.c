@@ -244,7 +244,9 @@ int process(GlobalArgs* globalArgs)
 
 	if(!(fp= fopen ( currentFileName , "rb" )))	
 		buildOrNot=1;
-	
+	else
+        fclose(fp);
+
 	if(buildOrNot)
 	{
 		if(buildPatternIndex(globalArgs)!=0)
