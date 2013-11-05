@@ -4,7 +4,11 @@
 #include <time.h>
 #include <string.h>
 #include <zlib.h>
+#include "kseq.h"
 #include "KeywordTree.h"
+
+// Initialize KSEQ reader
+KSEQ_INIT(gzFile, gzread)
 
 //second part of stream and count program
 //assumes that the input pattern set has been preprocessed into a keyword tree and serialized to a file <%s_%d-mers_KWTREE_INFO>
@@ -129,7 +133,7 @@ int countAll(GlobalArgs *globalArgs)
 int streamAndCountOneFile(KWTCounterManager *manager)
 {
 	gzFile inputFP;	
-	char currentLine[MAX_CHARS_PER_LINE];
+    kseq_t* seq;
 
 	//open file to read lines
 	if(!( inputFP = gzopen ( manager->inputFileName , "r" )))
@@ -138,14 +142,20 @@ int streamAndCountOneFile(KWTCounterManager *manager)
 		return 1;
 	}
 
-	while( gzgets (inputFP, currentLine, MAX_CHARS_PER_LINE - 10) != NULL ) 
+    // initialize reader
+    seq = kseq_init(inputFP);
+
+    // read sequences
+    while(kseq_read(seq) >= 0)
 	{
-		if(streamOneStringUnchanged(manager,currentLine,strlen(currentLine))!=0)
+		if(streamOneStringUnchanged(manager, seq->seq.s, seq->seq.l) != 0)
 		{
 			gzclose(inputFP);
 			return 1;
 		}	
-	}	
+    }
+
+    kseq_destroy(seq);
 	gzclose(inputFP);
 	return 0;	
 }
