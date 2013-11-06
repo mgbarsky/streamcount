@@ -14,7 +14,7 @@ int countAll(GlobalArgs *globalArgs)
 	char currentFileName[MAX_PATH_LENGTH];
 	KWTreeInfo newinfo[1];
 	FILE *kwInputFP;
-    FILE *outputFP;
+    	FILE *outputFP;
 	int read, written;
 	int i;
 	int f;	
@@ -37,13 +37,13 @@ int countAll(GlobalArgs *globalArgs)
 	fclose(kwInputFP);
 
 	//print new tree parameters read from file
-	printf("Read from file %s the following: totalNodes = %d, k=%d, totalPatterns=%d\n",
-		currentFileName,newinfo[0].treeSlotsNum,newinfo[0].k,newinfo[0].totalPatterns);
+	printf("Read from file %s the following: totalNodes = %d, k=%d, totalLeaves=%d\n",
+		currentFileName,newinfo[0].treeSlotsNum,newinfo[0].k,newinfo[0].totalLeaves);
 
 	//init general fields of the manager
 	manager.treeSlotsNum = newinfo[0].treeSlotsNum;
 	manager.k = newinfo[0].k;
-	manager.totalPatterns = newinfo[0].totalPatterns;
+	manager.totalPatterns = newinfo[0].totalLeaves;
 	
 	//allocate memory for KWT tree
 	if(!(manager.KWTree = (KWTNode *)calloc(manager.treeSlotsNum,sizeof (KWTNode))))

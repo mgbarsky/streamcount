@@ -286,8 +286,8 @@ buildPatternIndex(GlobalArgs *globalArgs)
 	//we serialize this information to store for future processing with each file
 	info[0].treeSlotsNum = manager.treeSlotsNum;
 	info[0].k=manager.k;
-	info[0].totalPatterns = totalUniquePatterns;
-
+	info[0].totalPatterns = manager.totalPatterns;
+	info[0].totalLeaves = manager.treeLeavesNum;
 	snprintf(currentFileName, MAX_PATH_LENGTH, "%s_%d-mers_KWTREE_INFO", patternFileName, manager.k);
 
 	if(!(outputFP= fopen ( currentFileName , "wb" )))

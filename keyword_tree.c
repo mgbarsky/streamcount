@@ -8,6 +8,7 @@ int buildKeywordTree (KWTreeBuildingManager *manager, char ** patterns, KmerInfo
 {
 	int i,c;
 	int currentNodeID = 0;
+	printf("Include reverse complement ?: %d\n",manager->includeReverseComplement);
 	int maxNumberOfleaves = (manager->includeReverseComplement)? (*totalPatterns)*2:(*totalPatterns);
 	maxNumberOfleaves+=2;  //that's because we start counting from 1
 

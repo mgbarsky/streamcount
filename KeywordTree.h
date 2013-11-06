@@ -97,7 +97,8 @@ typedef struct KWTreeInfo
 {
 	INT treeSlotsNum; //number of slots in an array of nodes
 	int k; //k - length of each k-mer
-	INT totalPatterns; //total unique patterns to search - we are going to store that many(-1) counters per file
+	INT totalPatterns; //total input k-mers to search 
+	int totalLeaves; //- we are going to store that many(-1) counters per file, starting from 1
 }KWTreeInfo;
 
 int process(GlobalArgs* globalArgs);

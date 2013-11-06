@@ -48,7 +48,7 @@ main(int argc, char *argv[])
 	fclose(inputFP);
 
 	//print how many leaves in the tree
-	totalCounters=info[0].totalPatterns;
+	totalCounters=info[0].totalLeaves;
 	printf("Total counters=%d\n",totalCounters);
 
 	//allocate an array of counters

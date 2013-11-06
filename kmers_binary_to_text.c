@@ -21,7 +21,7 @@ main(int argc, char *argv[])
 	int read;
 	KmerInfo *patternsInfo;
 	
-	if(argc<2)
+	if(argc<3)
 	{
 		printf("./patternsstotext <patterns file name fullpath> <size of k-mers> \n");
 		return 1;
