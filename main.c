@@ -25,7 +25,21 @@ static const struct option longOpts[] = {
 
 void display_usage()
 {
-	printf("./streamcount [-c] -p pattern_file_name -k length of k-mers  [-m memory_in_MB] [-d input_directory] [-f file_with_input_file_names] [-h (for help)] [-o output_directory] [-i patterns_input_type: 0 - lines, 1 - file, 2-snips] [-r (include reverse complement)] list_of_input_file_names\n");
+    static const char* USAGE_STRING =
+	"./streamcount [options] -p pattern_file -k k_mer_length query_file1 query_file2 ..."
+    "\n"
+    "Options: \n"
+    "        -h         Print this help and exit\n"
+    "        -c         Count the number of occurrences of each pattern in the query files\n"
+    "        -r         Include reverse-complement counts in the output\n"
+    "        -f FILE    Read query file names from FILE\n"
+    "        -i MODE    Patterns input MODE. MODE can be:\n"
+    "                     0 - patterns are read from each line of the input\n"
+    "                     1 - patterns are read from a FASTA file\n"
+    "        -d DIR     Read input files from DIR\n"
+    "        -o DIR     Write results to DIR\n"
+    "        -m N       Use at most N megabytes for the patterns\n";
+    printf("%s", USAGE_STRING);
 }
 
 int main(int argc, char *argv[])
@@ -101,6 +115,7 @@ int main(int argc, char *argv[])
             		case 'h':   /* fall-through is intentional */
             		case '?':
                 		display_usage();
+                        exit(EXIT_SUCCESS);
                 		break;  
                 
             		default:
@@ -173,7 +188,7 @@ int main(int argc, char *argv[])
 		if(globalArgs.numInputFiles==0)
 		{
 			printf("MANDATORY PARAMETER IS MISSING\n");
-			printf("In order to count k-mers you need to specify a set of files where to count\n");
+			printf("In order to count k-mers you need to specify a set of files where to count\n\n");
 			display_usage();
 			return 1;
 		}		
@@ -229,7 +244,9 @@ int process(GlobalArgs* globalArgs)
 
 	if(!(fp= fopen ( currentFileName , "rb" )))	
 		buildOrNot=1;
-	
+	else
+        fclose(fp);
+
 	if(buildOrNot)
 	{
 		if(buildPatternIndex(globalArgs)!=0)
