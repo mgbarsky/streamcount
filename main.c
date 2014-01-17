@@ -320,7 +320,7 @@ buildPatternIndex(GlobalArgs *globalArgs)
 	}
 
 	printf("Saved KWtree info to file %s: totalNodes = %d, totalLeaves=%d,  k=%d, total k-mers=%d\n",
-			currentFileName,info[0].treeSlotsNum,info[0].treeLeavesNum,info[0].k,info[0].totalPatterns);
+			currentFileName,info[0].treeSlotsNum,info[0].totalLeaves,info[0].k,info[0].totalPatterns);
 	fclose(outputFP);
 	
 	//serialize KWtree to disk
