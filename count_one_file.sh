@@ -3,4 +3,4 @@ PATTERNSFILE="$1"
 K="$2"
 INPUTMODE="$4"
 FILETOPROCESS="$3"
-./streamcount -p $PATTERNSFILE -k $K -m 3000 -i $INPUTMODE -r -c $FILETOPROCESS
+./streamcountunzipped -p $PATTERNSFILE -r -k $K -m 4000 -i $INPUTMODE  -c $FILETOPROCESS

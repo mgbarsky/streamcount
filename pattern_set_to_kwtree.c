@@ -106,7 +106,7 @@ int preprocessPatternSet(KWTreeBuildingManager *manager, char *patternsFileName,
 	if(buildKeywordTree(manager, patterns, patternsInfo, &totalPatterns, totalUniquePatterns)!=0)
 		return 1;
 
-	printf("BuildKeywordTree complete. Contains %ld leaves\n", *totalUniquePatterns);
+	printf("BuildKeywordTree complete. Contains %ld leaves\n", manager->treeLeavesNum);
 
 	//write patterns info to file - mapping from line number and position to actual leaf - position in the array of counters 
 	//open file for writing
