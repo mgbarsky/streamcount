@@ -2,42 +2,46 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
-#include "KeywordTree.h"
+#include "General.h"
+#include "StreamCount.h"
 
-int buildKeywordTree (KWTreeBuildingManager *manager, char ** patterns, KmerInfo *patternsInfo, int64_t *totalPatterns, int64_t *totalUniquePatterns)
+int buildKeywordTree (KWTreeBuildingManager *manager, char ** patterns, KmerInfo *patternsInfo)
 {
-	int i,c;
-	int currentNodeID = 0;
-	printf("Include reverse complement ?: %d\n",manager->includeReverseComplement);
-	int maxNumberOfleaves = (manager->includeReverseComplement)? (*totalPatterns)*2:(*totalPatterns);
-	maxNumberOfleaves+=2;  //that's because we start counting from 1
-
-	INT currentCharAsINT;
+	INT i,c;
+	INT currentNodeID = 0;
+	int currentCharAsINT;
 	
-	int numUniquePatterns = maxNumberOfleaves;
-	int *repetitionFirstOccurrence = (int *)calloc(maxNumberOfleaves,sizeof (int));
+	INT *repetitionFirstOccurrence = (INT *)calloc(manager->maxNumberOfLeaves+1,sizeof (INT));
 	char *rcPattern = (char *)calloc(manager->k+1,sizeof (char));
-	printf("Max number of leaves = %d\n",maxNumberOfleaves);
+	INT leavesCounter = 1;
+	INT treeSlotsNum = 1;
 
-	for(i=0;i<*totalPatterns;i++)
+    //fprintf(stderr,"Max number of leaves = %ld\n",manager->maxNumberOfLeaves);
+
+	for(i=0;i<manager->originalNumberOfKmers;i++)
 	{
-		currentNodeID=0; //starting from the root
+        currentNodeID=0; //starting from the root
 		c=0; //starting from the first char
 		currentCharAsINT = getCharValue(patterns[i][c]);
 		if(currentCharAsINT<0)
 		{
-			printf("Why invalid char in the pattern?\n");
+			fprintf(stderr,"Why invalid char in the input k-mers?\n");
 			return 1;
 		}
+
+        
 		//follow the path if exists
 		while (manager->KWtree[currentNodeID].children[currentCharAsINT]>0 && c<manager->k)
 		{			
 			currentNodeID = manager->KWtree[currentNodeID].children[currentCharAsINT];
+           
 			c++; 
 			if(c<manager->k)
 				currentCharAsINT = getCharValue(patterns[i][c]);
+          
 		}
-		//there are 2 cases: either the entire pattern is already in the tree -
+
+		//there are 2 cases: either the entire pattern is already in the tree - we reached a leaf
 		//in this case we mark it - duplicate: repeated = 1; 
 		if(c==manager->k)
 		{
@@ -45,38 +49,38 @@ int buildKeywordTree (KWTreeBuildingManager *manager, char ** patterns, KmerInfo
 			patternsInfo[i].counterID = - manager->KWtree[currentNodeID].children[0];
 
 			//also need to mark as repeated the first occurrence
-			patternsInfo[repetitionFirstOccurrence[- manager->KWtree[currentNodeID].children[0]]].repeated = 1;
-			numUniquePatterns--;  //removing duplicates
+			patternsInfo[repetitionFirstOccurrence[- manager->KWtree[currentNodeID].children[0]]].repeated = 1;			
 		}
 		else
 		{
 			//add a new path for the remaining suffix
 			for(;c < manager->k;c++)
 			{
-				INT nextSlotID = manager->treeSlotsNum++;
+				INT nextSlotID = treeSlotsNum++;
+                
 				currentCharAsINT = getCharValue(patterns[i][c]);
 				manager->KWtree[currentNodeID].children[currentCharAsINT] = nextSlotID;
 				currentNodeID=nextSlotID;				
 			}
+
 			//mark a leaf node
-			if(manager->treeLeavesNum >= maxNumberOfleaves)
+			if(leavesCounter >= manager->maxNumberOfLeaves)
 			{
-				printf("UNEXPECTED ERROR: number of leaves in the tree exceeded number of inserted patterns\n");
+				fprintf(stderr,"UNEXPECTED ERROR: number of leaves in the tree exceeded estimated number\n");
 				return 1;
 			}
-			manager->KWtree[currentNodeID].children[0]=-manager->treeLeavesNum; //pointer to a corresponding pattern
-			patternsInfo[i].counterID = manager->treeLeavesNum;
+
+			manager->KWtree[currentNodeID].children[0]=-leavesCounter; //pointer to a corresponding pattern
+			patternsInfo[i].counterID = leavesCounter;
 			//record first occurrence of this pattern, in case it repeats later
-			repetitionFirstOccurrence[manager->treeLeavesNum] = i ;
-			
-			manager->treeLeavesNum++;
-			
+			repetitionFirstOccurrence[leavesCounter] = i ;			
+			leavesCounter++;			
 		}
 
 		//now repeat the same insertion but with reverse complement
 		if(manager->includeReverseComplement)
 		{
-			if(produceReverseComplement(patterns[i],rcPattern)!=0)
+			if(produceReverseComplement(patterns[i],rcPattern))
 				return 1;
 			currentNodeID=0; //starting from the root
 			c=0; //starting from the first char
@@ -84,7 +88,7 @@ int buildKeywordTree (KWTreeBuildingManager *manager, char ** patterns, KmerInfo
 			//follow the path if exists
 			while (manager->KWtree[currentNodeID].children[currentCharAsINT]>0 && c<manager->k)
 			{			
-				currentNodeID = manager->KWtree[currentNodeID].children[currentCharAsINT];
+				currentNodeID = manager->KWtree[currentNodeID].children[currentCharAsINT];                
 				c++; 
 				if(c<manager->k)
 					currentCharAsINT = getCharValue(rcPattern[c]);
@@ -100,107 +104,45 @@ int buildKeywordTree (KWTreeBuildingManager *manager, char ** patterns, KmerInfo
 				//add a new path for the remaining suffix
 				for(;c < manager->k;c++)
 				{
-					INT nextSlotID = manager->treeSlotsNum++;
+					INT nextSlotID = treeSlotsNum++;
+                   
 					currentCharAsINT = getCharValue(rcPattern[c]);
 					manager->KWtree[currentNodeID].children[currentCharAsINT] = nextSlotID;
 					currentNodeID=nextSlotID;				
 				}
 
-				if(manager->treeLeavesNum >= maxNumberOfleaves)
+				if(leavesCounter >= manager->maxNumberOfLeaves)
 				{
-					printf("UNEXPECTED ERROR 2: number of leaves in the tree exceeded number of inserted patterns\n");
+					fprintf(stderr,"UNEXPECTED ERROR 2: number of leaves in the tree exceeded number of expected patterns with RC\n");
 					return 1;
 				}	
 
 				//mark a leaf node
-				manager->KWtree[currentNodeID].children[0]=-manager->treeLeavesNum; //pointer to a corresponding pattern
-				patternsInfo[i].rcCounterID = manager->treeLeavesNum;			
+				manager->KWtree[currentNodeID].children[0]=-leavesCounter; //pointer to a corresponding pattern
+				patternsInfo[i].rcCounterID = leavesCounter;			
 			
-				manager->treeLeavesNum++;
+				leavesCounter++;
 							
 			}
 		}
+        
 	}
 	
 	
-	//set totalUniquePatterns - numUniquePatterns
-	*totalUniquePatterns=numUniquePatterns;
-	
+	//set totalUniquePatterns - leavesCounter
+	manager->actualNumberOfLeaves = leavesCounter;
+	manager->actualNumberOfKWTreeNodes = treeSlotsNum;
+
 	free(repetitionFirstOccurrence);
 	free(rcPattern);
 	 
-	if(addSuffixLinks (&(manager->KWtree[0]), manager->treeSlotsNum)!=0)
+	if(addSuffixLinks (&(manager->KWtree[0]), manager->actualNumberOfKWTreeNodes))
 		return 1;
 
-	if(DEBUG_KWTREE)
+	if(PRINT_KWTREE)
 	{
 		printKeywordTree(manager->KWtree, 0,0);
 	}
-	return 0;
-}
-
-//this takes one string of chars, and streams this string through keyword tree
-//when leaf node is reached - the count is incremented
-//The streaming takes at most 2N operations, where N is the length of the input string
-int streamOneStringUnchanged(KWTCounterManager *manager, char *input, int strlength)
-{
-	int currentNodeID = 0; //start from the root
-	int currentPositionInInput = 0; //start from the first character
-	int found=0;
-	int suffixLinkID;
-	int currentChar;
-	int invalidChar = 0;
-	while (currentPositionInInput < strlength && !invalidChar)
-	{
-		currentChar = getCharValue(input[currentPositionInInput]);
-		if(currentChar<0)
-			invalidChar=1;
-		else
-		{
-			//case 1: there is a child currentChar out of a current node - we follow the path down the tree
-			if(manager->KWTree[currentNodeID].children[currentChar]>0)
-			{
-				currentNodeID=manager->KWTree[currentNodeID].children[currentChar];
-				if(manager->KWTree[currentNodeID].children[0]<0) //leaf node - stores a negated pattern ID -  update counter
-				{
-					if(manager->patternCounts[-manager->KWTree[currentNodeID].children[0]]<MAX_COUNT)
-						manager->patternCounts[-manager->KWTree[currentNodeID].children[0]]++;
-				}
-				currentPositionInInput++;
-			}
-			else //case 2. no child currentChar out of a current node
-			{
-				suffixLinkID =manager->KWTree[currentNodeID].suffixLinkID;
-				found =0;
-				while(suffixLinkID!=-1 && !found) //follows suffix link until finds outgoing edge for currentChar or reached the root - and there is no outgoing edge for currentChar
-				{
-					currentNodeID = suffixLinkID;
-					if(manager->KWTree[currentNodeID].children[currentChar]>0)
-					{
-						currentNodeID=manager->KWTree[currentNodeID].children[currentChar];
-						if(manager->KWTree[currentNodeID].children[0]<0) //leaf node - stores a negated pattern ID -  update counter
-						{
-							if(manager->patternCounts[-manager->KWTree[currentNodeID].children[0]]<MAX_COUNT)
-								manager->patternCounts[-manager->KWTree[currentNodeID].children[0]]++;
-						}
-						currentPositionInInput++;
-						found=1;
-					}
-					else
-					{
-						suffixLinkID= manager->KWTree[currentNodeID].suffixLinkID;  //follow up
-					}
-				}
-			
-				if(suffixLinkID == -1)  //reached the root and there is no appropriate child from the root - that means we need to start from the root and start from the next character
-				{
-					currentNodeID=0;
-					currentPositionInInput++;
-				}			
-			}
-		}		
-	}
-
 	return 0;
 }
 
@@ -215,7 +157,7 @@ int addSuffixLinks (KWTNode *tree, int totalNodes)
 	Queue queue;
 	if(!(queue.nodePointers  =(INT *)calloc(totalNodes,sizeof (INT))))
 	{
-		printf("Unable to allocate memory for queue of nodes to add suffix links to the keyword tree.\n");
+		fprintf(stderr,"Unable to allocate memory for queue of nodes to add suffix links to the keyword tree.\n");
 		return 1;
 	}
 	queue.first = 0;
@@ -231,7 +173,7 @@ int addSuffixLinks (KWTNode *tree, int totalNodes)
 		queue.first++;
 		if(queue.first==totalNodes)
 		{
-			printf("Unexpected error in priority queue - number of elements exceeded allocated space\n");
+			fprintf(stderr,"Unexpected error in priority queue 1 - number of elements exceeded allocated space %d: queue.first=%d \n",totalNodes,totalNodes);
 			free(queue.nodePointers);
 			return 1;
 		}
@@ -270,7 +212,7 @@ int addSuffixLinks (KWTNode *tree, int totalNodes)
 
 					if(queue.freeSpot==totalNodes)
 					{
-						printf("Unexpected error in priority queue - number of elements exceeded allocated space\n");
+						fprintf(stderr,"Unexpected error in priority queue 2- number of elements exceeded allocated space %d\n",totalNodes);
 						free(queue.nodePointers);
 						return 1;
 					}
@@ -281,6 +223,71 @@ int addSuffixLinks (KWTNode *tree, int totalNodes)
 	}
 	
 	free(queue.nodePointers);
+	return 0;
+}
+
+int streamOneString(KWTNode* KWTree,char *input,int strlength,INT *patternCounts)
+{
+	INT currentNodeID = 0; //start from the root
+	INT currentPositionInInput = 0; //start from the first character
+	int found=0;
+	INT suffixLinkID;
+	int currentChar;
+	int invalidChar = 0;
+
+	while (currentPositionInInput < strlength && !invalidChar)
+	{
+		currentChar = getCharValue(input[currentPositionInInput]);
+		if(currentChar<0)
+			invalidChar=1;
+		else
+		{
+			//case 1: there is a child currentChar out of a current node - we follow the path down the tree
+			if(KWTree[currentNodeID].children[currentChar]>0)
+			{
+				currentNodeID=KWTree[currentNodeID].children[currentChar];
+				if(KWTree[currentNodeID].children[0]<0) //leaf node - stores a negated pattern ID -  update counter
+				{
+					if(patternCounts[-KWTree[currentNodeID].children[0]]<MAX_COUNT)
+                    {
+						patternCounts[-KWTree[currentNodeID].children[0]]++;                        
+                    }
+				}
+				currentPositionInInput++;
+			}
+			else //case 2. no child currentChar out of a current node
+			{
+				suffixLinkID =KWTree[currentNodeID].suffixLinkID;
+				found =0;
+				while(suffixLinkID!=-1 && !found) //follows suffix links until finds outgoing edge for currentChar or reached the root - and there is no outgoing edge for currentChar
+				{
+					currentNodeID = suffixLinkID;
+					if(KWTree[currentNodeID].children[currentChar]>0)
+					{
+						currentNodeID=KWTree[currentNodeID].children[currentChar];
+						if(KWTree[currentNodeID].children[0]<0) //leaf node - stores a negated pattern ID -  update counter
+						{
+							if(patternCounts[-KWTree[currentNodeID].children[0]]<MAX_COUNT)
+								patternCounts[-KWTree[currentNodeID].children[0]]++;
+						}
+						currentPositionInInput++;
+						found=1;
+					}
+					else
+					{
+						suffixLinkID= KWTree[currentNodeID].suffixLinkID;  //follow up
+					}
+				}
+			
+				if(suffixLinkID == -1)  //reached the root and there is no appropriate child from the root - that means we need to start from the root and start from the next character
+				{
+					currentNodeID=0;
+					currentPositionInInput++;
+				}			
+			}
+		}		
+	}
+
 	return 0;
 }
 

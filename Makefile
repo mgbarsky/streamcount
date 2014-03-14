@@ -6,23 +6,16 @@ CFLAGS += -finline-functions
 CFLAGS += -funroll-loops
 CFLAGOFFSET = -D_FILE_OFFSET_BITS=64
 LDFLAGS=-lz
+MATHFLAG=-lm
 
 # Source files
-SC_SRC=utils.c keyword_tree.c pattern_set_to_kwtree.c streamandcount_all.c main.c
-SCU_SRC=utils.c keyword_tree.c pattern_set_to_kwtree.c streamandcount_all_unzipped.c main.c
-CT_SRC=counters_binary_to_text.c
-PT_SRC=kmers_binary_to_text.c
+SC_SRC=generalutils.c dnautils.c keyword_tree.c convertKmersIntoKWTree.c countKmersInFile.c MAIN.c
 
 # Binaries
-all: streamcount countstotext patternstotext streamcountunzipped
+all: streamcount 
 
+#streams the lines of the input file (in any format - fasta, text, compressed) and counts k-mers
 streamcount: $(SC_SRC)
 	$(CC) $(CFLAGOPT) $(CFLAGOFFSET) $(CFLAGS) $^ -o $@ $(LDFLAGS)
-streamcountunzipped: $(SCU_SRC)
-	$(CC) $(CFLAGOPT) $(CFLAGOFFSET) $(CFLAGS) $^ -o $@ 
-countstotext: $(CT_SRC)
-	$(CC) $(CFLAGOPT) $(CFLAGOFFSET) $(CFLAGS) $^ -o $@ $(LDFLAGS)
-patternstotext: $(PT_SRC)
-	$(CC) $(CFLAGOPT) $(CFLAGOFFSET) $(CFLAGS) $^ -o $@ $(LDFLAGS)
 clean:  
-	rm streamcount countstotext patternstotext streamcountunzipped
+	rm streamcount 

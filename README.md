@@ -2,17 +2,20 @@ streamcount
 ===========
 This is a program which counts occurences of k-mers (strings of length k characters) in an arbitrarily large input.
 
-The program first takes a set of pattern strings, breaks them into k-mers, and builds from this set of patterns 
-a keyword tree with suffix links (see Aho-Corasick algorithm). This keyword tree is serialized to disk, 
-to stream any input file against it.
+The program first takes a set of pattern strings, breaks the strings into k-mers, and builds from this set of k-mers
+a keyword tree with suffix links (see Aho-Corasick algorithm). 
 
-In the second part, each line of each input file is streamed through the keyword tree 
-and the counters of the corresponding k-mers for this file are collected and serialized to disk.
+In the second part, each line of an input file is streamed through the keyword tree 
+and the counters of the corresponding k-mers for this file are collected.
+
+The number of k-mers which can be simultaneously counted is limited by the amount of the available RAM.
+The number is also limited by the use of a signed integer INT defined as int32_t at lines 13, 15 of StreamCount.h.
+With this definition, we can build an index for at most Int32.MaxValue/k input k-mers.
+To increase this limit, redefine INT as int64_t and recompile.
 
 *************
 Dependencies:
 *************
-
 zlib
 
 *************
@@ -23,88 +26,78 @@ make
 ************
 To run:
 ************
-To run a program (./streamcount) you need to specify the following parameters
+If you add the path to compiled streamcount to your PATH variable, 
+it can be run as a standard unix command: streamcount
 
+To run a program (./streamcount) you need to specify the following parameters
+****************
+PROGRAM ARGUMENTS
+****************
 
 Mandatory:
 **********
 
--p 'file name'
+--kmers 'kmers_file'
 
-where 'file name' is the full path and file name of the file from which to extract the k-mers
+where 'kmers_file' is the full path and file name of the file from which to extract the k-mers.
+The file with k-mers should contain only characters from a valid DNA alphabet. 
+These should be dealt with prior to running the program.
 
--k value of k
+-i --input 'input_file'
 
-If only these parameters are specified, the program will create a keyword tree to be used later.
-By default, k-mers are extracted from each separate line.
-The output keyword tree will be written into the same directory as the 'file name' in form of 3 files:
+where 'input_file' is the full path and file name of the file where to count the k-mers.
 
-1. 'file name'_k-mers_MAPPINGS - this is a binary file which contains an information for each extracted k-mer: 
-line number, start position in this line, the position of the counter for this k-mer in the array of counters, 
-the position of the counter for the reverse complement of this k-mer in the array of counters, and 0/1 flag 
-which specifies whether this k-mer was unique in the input patterns file (0), or it occurs in more than 1 place
 
-2. 'file name'_k-mers_KWTREE_INFO - binary file containing parameters of the keyword tree - to be loaded later
+If the input option is not specified, the program tries to read the input text from stdin.
+In this case, the following commands are valid:
 
-3. 'file name'_k-mers_KWTREE - binary file containing the tree itself
+cat 'input_file' |./streamcount --kmers 'kmers_file'
+./streamcount --kmers 'kmers_file' < 'input_file'
 
-Note: if the files with the same name already exist, the tree will not be re-created.
+By specifying only these two mandatory parameters, we accept the following default program behaviour:
+1. 'input_file' is of type FASTA. It can be compressed.
 
+2. Each line of 'kmers_file' is treated as a separate k-mer.
+
+3. The final count for each k-mer includes a count for its reverse complement string.
+
+4. The final counts for each k-mer are written to stdout, one count per line.
+
+5. If the k-mers in 'kmers_file' are not unique, the information about this is supressed.
 
 Optional:
 *********
--r If this option is specified, the reverse complement of each k-mer will be added to the set of k-mers
+To modify default behavior:
 
--i Input mode for the extraction of k-mers: 
+Input options: 
+**************
+-k='k' 
+length of each k-mer. If there are more than one k-mer in each input line, all of them will be considered. In this case, output for each line will consist of a line of comma-separated counts
 
-  0 - each line in the pattern file is treated as a separate line;
-  1 - all lines of the input file are treated as one long string
+--kmers-multiline
+extract k-mers from 'kmers_file' treating the entire file as one string
 
--c If this option is specified, program performs the k-mer counting in a set of input files.
-In this case, you have to specify the input files where to perform the counting.
+--input-plain-text
+treat input as text lines, rather than FASTA.
+ 
+Counting options:
+***************** 
+--no-rc 
+do not include count of reverse complement into final count of each k-mer. This option can be useful when counting k-mers in a genomic sequence.
 
-There are 2 options:
+-m,     --mem='MEMORY_MB'
+amount of memory available for indexing k-mers. Specify amount of memory (in MB) you are ready to sacrifice to hold a k-mer index. 
+This is used to estimate if you can hold k-mers index prior to processing. 
+Default: 4000MB
 
-1. List all input files after all options, separated by space
+Output options: 
+*************** 
+--printseq
+print each original line of 'kmers_file' before its count(s). 
 
-2. Provide a file with a list of file names, where each line contains the file name to be processed: -f 'file name'
-
-Additionaly, for both cases you can specify the relative path to the input files using option -d 'directory name'
-
-Counting output:
-The counting will be performed in each specified file, and an array with counters will be saved to disk in a binary file
-'input fle name'_k-mers_COUNTS, in the same directory where the input files are.
-
-If you want to write the counts into a different directory, you will need to specify an additional option
--o 'output directory'
-
-Additional utils
-****************
-In this version there are two additional programs which convert binary outputs into text format, 
-so that they can be post-processed using different file manipulation tools
-
-./countstotext 'patterns file name fullpath' 'size of k-mers' 'input file name(s) full path'
-
-This will convert an array of counters into a text file, each counter on a separate line
-
-./patternsstotext 'patterns file name fullpath' 'size of k-mers'
-
-This will convert the information about k-mers into a tabular format with the following columns:
-line number, start pos in this line, index in the array of counters, same index for reverse complement, repeated (no-0, yes-1)
-
-Sample running scripts
-**********************
-You can run counting of 50-mers (with their reverse complements) in a separate file file1.fastq by running:
-
-./count_one_file.sh patterns.fasta 50 file1.fastq 1
-
-1 - is the input mode which tells to treat lines in patterns.fasta as one string, concatenating k-mers from different lines
+--repeat-mask-tofile='repeat-mask-file'
+for each k-mer prints to 'repeat-mask-file' 0 or 1. 
+1 is printed if this k-mer is not unique (repeats) in the 'kmers_file'
+    
 
 
-In order to perform counting on cluster (running SGE) run sample in streamfile.sh:
-
-./streamfiles.sh list_of_files.txt patterns.fasta 1
-
-This loops through all files in 'list_of_files.txt', and submits each file for counting 50-mers to a separate cluster node:
-
-qsub -cwd -b y -l h_vmem=4g ./count_one_file.sh $PATTERNSFILE "50" $FILENAME $INPUTMODE
