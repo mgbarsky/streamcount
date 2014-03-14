@@ -52,6 +52,7 @@ If the input option is not specified, the program tries to read the input text f
 In this case, the following commands are valid:
 
 cat 'input_file' |./streamcount --kmers 'kmers_file'
+
 ./streamcount --kmers 'kmers_file' < 'input_file'
 
 By specifying only these two mandatory parameters, we accept the following default program behaviour:
