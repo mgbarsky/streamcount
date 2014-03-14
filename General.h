@@ -11,10 +11,10 @@ int validChar(char c); //answers whether char c is from DNA alphabet
 int lenValidChars(char *currentLine, int lineLen); //returns number of valid DNA chars in line
 
 int getCharValue(char c); //returns 0,1,2,3 for a(A),c(C),g(G),t(T), returns -1 for all other chars
-char getCharFromNumber(int n); //returns A,C,G,T for 0,1,2,3, terminates program if something else is requested
+//char getCharFromNumber(int n); //returns A,C,G,T for 0,1,2,3, terminates program if something else is requested
 int produceReverseComplement(char *pattern, char *rcPattern); //produces char array rcPattern, complementary to char array pattern read in reverse order. Returns 1 if invalid (non-DNA character) encountered
 
-
+int endProgram(int exitStatus, int indicateEnd, FILE *endFile );
 
 
 

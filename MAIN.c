@@ -15,7 +15,7 @@
 #define OPT_PRINT_SEQ 5
 #define OPT_REPEAT_MASK 6
 
-static const char *shortOpts = "hk:i:m:";        
+static const char *shortOpts = "hk:i:m:e";        
 
 static const struct option longOpts[] = {
 	{ "kmers", required_argument, NULL, OPT_KMERS },
@@ -28,6 +28,7 @@ static const struct option longOpts[] = {
 	{ "mem", required_argument, NULL, 'm' },
 	{ "printseq", no_argument, NULL, OPT_PRINT_SEQ },
 	{ "repeat-mask-tofile", required_argument, NULL, OPT_REPEAT_MASK },
+    { "e", no_argument, NULL, 'e' },
 	{ NULL, no_argument, NULL, 0 }
 };
 
@@ -55,7 +56,8 @@ void display_usage()
     "  Output options: \n" 
     "              --printseq                                  print an original line of <kmers_file> before its count. \n"
     "                                                          Default: print counts only - each line of count(s) corresponds to the line in <kmers_file>\n"
-    "              --repeat-mask-tofile=<repeat-mask-file>     for each k-mer prints to <repeat-mask-file> 0 or 1. 1 is printed if this k-mer is not unique (repeats) in the <kmers_file> \n\n";
+    "              --repeat-mask-tofile=<repeat-mask-file>     for each k-mer prints to <repeat-mask-file> 0 or 1. 1 is printed if this k-mer is not unique (repeats) in the <kmers_file> \n"
+    "      -e                                                  write a small file indicating the end of processing - to use with cluster. To use this option, input file name has to be specified. \n\n";
     
     printf("%s", USAGE_STRING);
 }
@@ -74,6 +76,9 @@ int main(int argc, char *argv[])
 	FILE *kmersFP=NULL;
     FILE *repeatsFP=NULL;
 
+    FILE *endFile=NULL;
+    char endFileName[MAX_PATH_LENGTH];
+
 	INT k=0; // default - the length of the first valid line
 	int includeRC=1; //default - DNA with reverse complement
 	int kmersInputType=KMERS_FROM_LINES; //default - extract k-mers from each line - no line crossing
@@ -85,7 +90,7 @@ int main(int argc, char *argv[])
     KWTreeBuildingManager kwtreemanager; //bookkeper for indexing
     KWTCounterManager manager; //bookkeper for counting
    
-   // int moreThanOneKmerInLine = 0;
+    int indicateEnd = 0;
 
     INT *kmersCounts;
     int longIndex;
@@ -132,10 +137,23 @@ int main(int argc, char *argv[])
                 repeatsFileName=optarg; 
                 break;
 
+            case 'e':
+				if(inputFileName!=NULL)
+                {
+                    indicateEnd=1;
+                    snprintf(endFileName, MAX_PATH_LENGTH, "%s_END", inputFileName);
+                    if(!(endFile= fopen ( endFileName, "w" )))
+                    {
+                        fprintf(stderr,"Could not open file \"%s\" for writing end of program mark \n", endFileName);
+                        return endProgram(EXIT_FAILURE, indicateEnd, endFile );
+                    }
+                } 
+                break;
+
             case 'h':   /* fall-through is intentional */
             case '?':
                 display_usage();
-                exit(EXIT_SUCCESS);
+                return endProgram(EXIT_SUCCESS, 0, endFile );
                 break;  
                 
            default:
@@ -150,13 +168,13 @@ int main(int argc, char *argv[])
     if(kmersFileName == NULL)
     {
         fprintf(stderr,"Required parameter: --kmers name of file with k-mers \n");
-        exit(1);
+        return endProgram(EXIT_FAILURE, indicateEnd, endFile );
     }
 
     if(!(kmersFP= fopen ( kmersFileName, "r" )))
     {
         fprintf(stderr,"Could not open file \"%s\" for extracting k-mers from it \n", kmersFileName);
-        exit(1);
+        return endProgram(EXIT_FAILURE, indicateEnd, endFile );
     }
 
     //check that inputFileName is not NULL. Try to read from stdin
@@ -169,14 +187,14 @@ int main(int argc, char *argv[])
         if(!(inputFP= fopen ( inputFileName , "r" )))
         {
             fprintf(stderr,"Could not open file \"%s\" for counting k-mers in it \n", inputFileName);
-            exit(1);
+            return endProgram(EXIT_FAILURE, indicateEnd, endFile );
         }
     }
 
     if(inputFP==NULL)
     {
         fprintf(stderr,"No input file provided: where am I supposed to count k-mers?\n");
-        exit(1);
+        return endProgram(EXIT_FAILURE, indicateEnd, endFile );
     }
 
     //check if k==0 and if yes try to deduce from k-mers file
@@ -196,7 +214,7 @@ int main(int argc, char *argv[])
         if (k==0)
         {
             fprintf(stderr,"No valid lines in k-mers input file \"%s\" for extracting k-mers from it \n", kmersFileName);
-            exit(1);
+            return endProgram(EXIT_FAILURE, indicateEnd, endFile );
         }
     }
     rewind(kmersFP);
@@ -220,7 +238,7 @@ int main(int argc, char *argv[])
     //TTT. first, extract k-mers and build a kw-tree - in RAM, without writing to disk
     //*************************************
     if(convertAllKmersIntoKWTreeReturnTree (kmersFP,  kmersInputType,  k,  includeRC,  memoryMB, &kwtreemanager)!=EXIT_SUCCESS)
-		return EXIT_FAILURE;
+		return endProgram(EXIT_FAILURE, indicateEnd, endFile );
 
     //free patterns array - dont need it anymore 
 	for(i=0;i<kwtreemanager.estimatedNumberOfKmers;i++)
@@ -244,14 +262,14 @@ int main(int argc, char *argv[])
 	if(!(manager.substringCounts =(INT *)calloc(manager.numberOfKWTreeLeaves,sizeof (INT))))
 	{
 		fprintf(stderr,"Unable to allocate memory to hold %ld counters.\n",(long)manager.numberOfKWTreeLeaves );
-		return EXIT_FAILURE;
+		return endProgram(EXIT_FAILURE, indicateEnd, endFile );
 	}
 	
     fprintf(stderr,"________________________________________\n");
 	fprintf(stderr,"Started counting k-mers in the input file  (may take some time)...\n");
     fprintf(stderr,"*********************************\n\n");
     if(streamAndCountOneFile(&manager)!=EXIT_SUCCESS)
-			return EXIT_FAILURE;
+			return endProgram(EXIT_FAILURE, indicateEnd, endFile );
 
     fprintf(stderr,"*************************************\n");
 	fprintf(stderr,"Counting complete\n");
@@ -265,7 +283,7 @@ int main(int argc, char *argv[])
     if(!(kmersCounts =(INT *)calloc(kwtreemanager.originalNumberOfKmers,sizeof (INT))))
 	{
 		fprintf(stderr,"Unable to allocate memory to hold %ld k-mer counters.\n",(long)kwtreemanager.originalNumberOfKmers );
-		return EXIT_FAILURE;
+		return endProgram(EXIT_FAILURE, indicateEnd, endFile );
 	}      
     
     
@@ -273,7 +291,7 @@ int main(int argc, char *argv[])
         kwtreemanager.originalNumberOfKmers, kwtreemanager.kmersInfo,   kmersCounts, includeRC )!=EXIT_SUCCESS)
     {
         fprintf(stderr,"Unexpected error producing final k-mer counts.\n" );
-		return EXIT_FAILURE;
+		return endProgram(EXIT_FAILURE, indicateEnd, endFile );
     }
 
     //**************************************
@@ -287,7 +305,7 @@ int main(int argc, char *argv[])
         if(nextValidLineTextFile (kmersFP, k, validLine)!=EXIT_SUCCESS)        
         {
             fprintf(stderr,"Unexpected error: no valid line found for the 0 line of k-mers.\n" );
-		    return EXIT_FAILURE;
+		    return endProgram(EXIT_FAILURE, indicateEnd, endFile );
         }
     }
 
@@ -309,7 +327,7 @@ int main(int argc, char *argv[])
                     if(nextValidLineTextFile (kmersFP, k, validLine)!=EXIT_SUCCESS)        
                     {
                         fprintf(stderr,"Unexpected error: no valid line found for the %d-th line of k-mers.\n",currentLineNumber );
-		                return EXIT_FAILURE;
+		                return endProgram(EXIT_FAILURE, indicateEnd, endFile );
                     }
                 }
             }
@@ -343,7 +361,7 @@ int main(int argc, char *argv[])
         if(!(repeatsFP= fopen ( repeatsFileName, "w" )))
         {
             fprintf(stderr,"Could not open file \"%s\" for writing repeats masks for input k-mers \n", repeatsFileName);
-            exit(1);
+            return endProgram(EXIT_FAILURE, indicateEnd, endFile );
         }
 
         int currentLineNumber=0;
@@ -376,5 +394,17 @@ int main(int argc, char *argv[])
     //free counts memory
 	free(manager.substringCounts);	
     free(kmersCounts);
-	return EXIT_SUCCESS;
+
+    
+	return endProgram(EXIT_SUCCESS, indicateEnd, endFile );
+}
+
+int endProgram(int exitStatus, int indicateEnd, FILE *endFile )
+{
+    if(indicateEnd)
+    {
+        fprintf(endFile,"%d",exitStatus);
+        fclose(endFile);
+    }
+    return exitStatus;
 }

@@ -90,14 +90,7 @@ int getCharValue(char c)
 	return dictFromCharToInt[(int)(c)];
 }
 
-char getCharFromNumber(int n)
-{
-	if(n<4)
-		return 	dictFromIntToChar[n];
-	//else	
-	fprintf(stderr,"Invalid number-to-character encountered \n");
-	exit(EXIT_FAILURE);	
-}
+
 
 char getComplement(char c)
 {
