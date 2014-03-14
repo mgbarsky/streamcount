@@ -9,7 +9,7 @@ In the second part, each line of an input file is streamed through the keyword t
 and the counters of the corresponding k-mers for this file are collected.
 
 The number of k-mers which can be simultaneously counted is limited by the amount of the available RAM.
-The number is also limited by the use of a signed integer INT defined as int32_t at lines 13, 15 of StreamCount.h.
+The number is also limited by the use of a signed integer INT defined as int32_t on lines 13, 15 of StreamCount.h.
 With this definition, we can build an index for at most Int32.MaxValue/k input k-mers.
 To increase this limit, redefine INT as int64_t and recompile.
 
@@ -26,7 +26,7 @@ make
 ************
 To run:
 ************
-If you add the path to compiled streamcount to your PATH variable, 
+If you add a path to the compiled streamcount to your PATH variable, 
 it can be run as a standard unix command: streamcount
 
 To run a program (./streamcount) you need to specify the following parameters
@@ -41,7 +41,7 @@ Mandatory:
 
 where 'kmers_file' is the full path and file name of the file from which to extract the k-mers.
 The file with k-mers should contain only characters from a valid DNA alphabet. 
-These should be dealt with prior to running the program.
+This should be dealt with prior to running the program.
 
 -i --input 'input_file'
 
@@ -86,7 +86,7 @@ Counting options:
 do not include count of reverse complement into final count of each k-mer. This option can be useful when counting k-mers in a genomic sequence.
 
 -m,     --mem='MEMORY_MB'
-amount of memory available for indexing k-mers. Specify amount of memory (in MB) you are ready to sacrifice to hold a k-mer index. 
+amount of memory available for indexing k-mers. Specify the amount of memory (in MB) that you are ready to sacrifice to hold a k-mer index. 
 This is used to estimate if you can hold k-mers index prior to processing. 
 Default: 4000MB
 
