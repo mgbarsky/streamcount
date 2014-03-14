@@ -25,14 +25,13 @@ int nextValidLineTextFile (FILE *inputFP, INT k, char *outputLine)
     {
         int lineLen = lenValidChars(currentLine,strlen(currentLine));
 		if(lineLen>=k)
-        {
-            
+        {            
             memcpy(outputLine,currentLine,lineLen);
             outputLine[lineLen]=0;
-            return 0;	    
+            return EXIT_SUCCESS;	    
         }
     }   
-    return 1;
+    return EXIT_FAILURE;
 }
 
 
@@ -62,7 +61,7 @@ int combineSubstringCountsIntoKmersCounts(INT totalSubstringCounts,INT *substrin
 		    if(countID <= 0  || countID >= totalSubstringCounts || rcID==0 || rcID >= totalSubstringCounts)
 		    {
 				    fprintf(stderr,"Invalid value for %ld-th kmer-to-substring mapping: maps k-mer to %ld and rc to %ld\n",(long)i,(long)countID,(long)rcID);
-				    return 1;
+				    return EXIT_FAILURE;
 		    }
 
 		    totalCount = substringCounts[countID] + substringCounts [rcID];
@@ -72,7 +71,7 @@ int combineSubstringCountsIntoKmersCounts(INT totalSubstringCounts,INT *substrin
             if(countID <= 0  || countID >= totalSubstringCounts )
 		    {
 				    fprintf(stderr,"Invalid value for %ld-th kmer-to-substring mapping: maps k-mer to %ld \n",(long)i,(long)countID);
-				    return 1;
+				    return EXIT_FAILURE;
 		    }
 
 		    totalCount = substringCounts[countID];
@@ -81,7 +80,7 @@ int combineSubstringCountsIntoKmersCounts(INT totalSubstringCounts,INT *substrin
 			totalCount=-totalCount;
 		kmersCounts[i] = totalCount;
 	}
-    return 0;
+    return EXIT_SUCCESS;
 }
 
 //to print tree starting from the root call printKeywordTree(tree, 0,0)

@@ -26,7 +26,7 @@ int buildKeywordTree (KWTreeBuildingManager *manager, char ** patterns, KmerInfo
 		if(currentCharAsINT<0)
 		{
 			fprintf(stderr,"Why invalid char in the input k-mers?\n");
-			return 1;
+			return EXIT_FAILURE;
 		}
 
         
@@ -67,7 +67,7 @@ int buildKeywordTree (KWTreeBuildingManager *manager, char ** patterns, KmerInfo
 			if(leavesCounter >= manager->maxNumberOfLeaves)
 			{
 				fprintf(stderr,"UNEXPECTED ERROR: number of leaves in the tree exceeded estimated number\n");
-				return 1;
+				return EXIT_FAILURE;
 			}
 
 			manager->KWtree[currentNodeID].children[0]=-leavesCounter; //pointer to a corresponding pattern
@@ -80,8 +80,8 @@ int buildKeywordTree (KWTreeBuildingManager *manager, char ** patterns, KmerInfo
 		//now repeat the same insertion but with reverse complement
 		if(manager->includeReverseComplement)
 		{
-			if(produceReverseComplement(patterns[i],rcPattern))
-				return 1;
+			if(produceReverseComplement(patterns[i],rcPattern)!=EXIT_SUCCESS)
+				return EXIT_FAILURE;
 			currentNodeID=0; //starting from the root
 			c=0; //starting from the first char
 			currentCharAsINT = getCharValue(rcPattern[c]);
@@ -114,7 +114,7 @@ int buildKeywordTree (KWTreeBuildingManager *manager, char ** patterns, KmerInfo
 				if(leavesCounter >= manager->maxNumberOfLeaves)
 				{
 					fprintf(stderr,"UNEXPECTED ERROR 2: number of leaves in the tree exceeded number of expected patterns with RC\n");
-					return 1;
+					return EXIT_FAILURE;
 				}	
 
 				//mark a leaf node
@@ -136,14 +136,14 @@ int buildKeywordTree (KWTreeBuildingManager *manager, char ** patterns, KmerInfo
 	free(repetitionFirstOccurrence);
 	free(rcPattern);
 	 
-	if(addSuffixLinks (&(manager->KWtree[0]), manager->actualNumberOfKWTreeNodes))
-		return 1;
+	if(addSuffixLinks (&(manager->KWtree[0]), manager->actualNumberOfKWTreeNodes)!=EXIT_SUCCESS)
+		return EXIT_FAILURE;
 
 	if(PRINT_KWTREE)
 	{
 		printKeywordTree(manager->KWtree, 0,0);
 	}
-	return 0;
+	return EXIT_SUCCESS;
 }
 
 
@@ -158,7 +158,7 @@ int addSuffixLinks (KWTNode *tree, int totalNodes)
 	if(!(queue.nodePointers  =(INT *)calloc(totalNodes,sizeof (INT))))
 	{
 		fprintf(stderr,"Unable to allocate memory for queue of nodes to add suffix links to the keyword tree.\n");
-		return 1;
+		return EXIT_FAILURE;
 	}
 	queue.first = 0;
 	queue.freeSpot =1;
@@ -175,7 +175,7 @@ int addSuffixLinks (KWTNode *tree, int totalNodes)
 		{
 			fprintf(stderr,"Unexpected error in priority queue 1 - number of elements exceeded allocated space %d: queue.first=%d \n",totalNodes,totalNodes);
 			free(queue.nodePointers);
-			return 1;
+			return EXIT_FAILURE;
 		}
 		queue.counter--;
 
@@ -210,11 +210,11 @@ int addSuffixLinks (KWTNode *tree, int totalNodes)
 					//advance freespot
 					queue.freeSpot++;
 
-					if(queue.freeSpot==totalNodes)
+					if(queue.freeSpot>=totalNodes)
 					{
 						fprintf(stderr,"Unexpected error in priority queue 2- number of elements exceeded allocated space %d\n",totalNodes);
 						free(queue.nodePointers);
-						return 1;
+						return EXIT_FAILURE;
 					}
 					queue.counter++;
 				}
@@ -223,7 +223,7 @@ int addSuffixLinks (KWTNode *tree, int totalNodes)
 	}
 	
 	free(queue.nodePointers);
-	return 0;
+	return EXIT_SUCCESS;
 }
 
 int streamOneString(KWTNode* KWTree,char *input,int strlength,INT *patternCounts)
@@ -288,6 +288,6 @@ int streamOneString(KWTNode* KWTree,char *input,int strlength,INT *patternCounts
 		}		
 	}
 
-	return 0;
+	return EXIT_SUCCESS;
 }
 

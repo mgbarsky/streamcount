@@ -96,7 +96,7 @@ char getCharFromNumber(int n)
 		return 	dictFromIntToChar[n];
 	//else	
 	fprintf(stderr,"Invalid number-to-character encountered \n");
-	exit(0);	
+	exit(EXIT_FAILURE);	
 }
 
 char getComplement(char c)
@@ -112,13 +112,13 @@ int produceReverseComplement(char *pattern, char *rcPattern)
 	for(i=len-1, r=0; i>=0; i--,r++)
 	{
 		char complement=getComplement(pattern[i]);
-		if(complement == -1)
+		if(complement <0)
 		{
 			fprintf(stderr,"INVALID CHARACTER ENCOUNTERED for complement: %s\n", pattern);
-			return 1;
+			return EXIT_FAILURE;
 		}
 		rcPattern[r] = complement;
 	}
 	rcPattern[r] ='\0';
-	return 0;
+	return EXIT_SUCCESS;
 }

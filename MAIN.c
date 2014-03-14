@@ -219,8 +219,8 @@ int main(int argc, char *argv[])
     //**************************************
     //TTT. first, extract k-mers and build a kw-tree - in RAM, without writing to disk
     //*************************************
-    if(convertAllKmersIntoKWTreeReturnTree (kmersFP,  kmersInputType,  k,  includeRC,  memoryMB, &kwtreemanager))
-		return 1;
+    if(convertAllKmersIntoKWTreeReturnTree (kmersFP,  kmersInputType,  k,  includeRC,  memoryMB, &kwtreemanager)!=EXIT_SUCCESS)
+		return EXIT_FAILURE;
 
     //free patterns array - dont need it anymore 
 	for(i=0;i<kwtreemanager.estimatedNumberOfKmers;i++)
@@ -244,14 +244,14 @@ int main(int argc, char *argv[])
 	if(!(manager.substringCounts =(INT *)calloc(manager.numberOfKWTreeLeaves,sizeof (INT))))
 	{
 		fprintf(stderr,"Unable to allocate memory to hold %ld counters.\n",(long)manager.numberOfKWTreeLeaves );
-		return 1;
+		return EXIT_FAILURE;
 	}
 	
     fprintf(stderr,"________________________________________\n");
 	fprintf(stderr,"Started counting k-mers in the input file  (may take some time)...\n");
     fprintf(stderr,"*********************************\n\n");
-    if(streamAndCountOneFile(&manager))
-			return 1;
+    if(streamAndCountOneFile(&manager)!=EXIT_SUCCESS)
+			return EXIT_FAILURE;
 
     fprintf(stderr,"*************************************\n");
 	fprintf(stderr,"Counting complete\n");
@@ -265,15 +265,15 @@ int main(int argc, char *argv[])
     if(!(kmersCounts =(INT *)calloc(kwtreemanager.originalNumberOfKmers,sizeof (INT))))
 	{
 		fprintf(stderr,"Unable to allocate memory to hold %ld k-mer counters.\n",(long)kwtreemanager.originalNumberOfKmers );
-		return 1;
+		return EXIT_FAILURE;
 	}      
     
     
     if(combineSubstringCountsIntoKmersCounts(manager.numberOfKWTreeLeaves,manager.substringCounts,
-        kwtreemanager.originalNumberOfKmers, kwtreemanager.kmersInfo,   kmersCounts, includeRC ))
+        kwtreemanager.originalNumberOfKmers, kwtreemanager.kmersInfo,   kmersCounts, includeRC )!=EXIT_SUCCESS)
     {
         fprintf(stderr,"Unexpected error producing final k-mer counts.\n" );
-		return 1;
+		return EXIT_FAILURE;
     }
 
     //**************************************
@@ -284,10 +284,10 @@ int main(int argc, char *argv[])
     {        
         rewind(kmersFP);
         //read first valid line
-        if(nextValidLineTextFile (kmersFP, k, validLine))        
+        if(nextValidLineTextFile (kmersFP, k, validLine)!=EXIT_SUCCESS)        
         {
             fprintf(stderr,"Unexpected error: no valid line found for the 0 line of k-mers.\n" );
-		    return 1;
+		    return EXIT_FAILURE;
         }
     }
 
@@ -306,10 +306,10 @@ int main(int argc, char *argv[])
                 //read the next line - if there is the next line
                 if(i< kwtreemanager.originalNumberOfKmers-1)
                 {
-                    if(nextValidLineTextFile (kmersFP, k, validLine))        
+                    if(nextValidLineTextFile (kmersFP, k, validLine)!=EXIT_SUCCESS)        
                     {
                         fprintf(stderr,"Unexpected error: no valid line found for the %d-th line of k-mers.\n",currentLineNumber );
-		                return 1;
+		                return EXIT_FAILURE;
                     }
                 }
             }
@@ -376,5 +376,5 @@ int main(int argc, char *argv[])
     //free counts memory
 	free(manager.substringCounts);	
     free(kmersCounts);
-	return 0;
+	return EXIT_SUCCESS;
 }

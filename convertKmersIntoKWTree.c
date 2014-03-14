@@ -24,10 +24,10 @@ int convertAllKmersIntoKWTreeReturnTree (FILE *kmersFP, int inputType, INT k, in
     fprintf(stderr,"****************************\n");
 
 	//this will read input file and estimate how many k-mers it is possible to extract - return into estimatedNumberOfKmers
-	if(collectKmerInputStats(kmersFP,manager->k,manager->inputType, &estimatedNumberOfKmers))
+	if(collectKmerInputStats(kmersFP,manager->k,manager->inputType, &estimatedNumberOfKmers)!=EXIT_SUCCESS)
 	{
 		fclose(kmersFP);
-		return 1;
+		return EXIT_FAILURE;
 	}
 
 	if(DEBUG_KMERS_EXTRACTION) fprintf(stderr,"Estimated total %ld non-rc k-mers of size %ld each\n", (long)estimatedNumberOfKmers,(long)(manager->k)); 
@@ -35,7 +35,7 @@ int convertAllKmersIntoKWTreeReturnTree (FILE *kmersFP, int inputType, INT k, in
 	if(estimatedNumberOfKmers == 0)
 	{
 		fprintf(stderr,"No valid characters found in the pattern input file, or the k-mer size exceeds the line length\n");
-		return 1;
+		return EXIT_FAILURE;
 	}	
 	
 	//check if we have sufficient memory to hold KWtree
@@ -49,14 +49,14 @@ int convertAllKmersIntoKWTreeReturnTree (FILE *kmersFP, int inputType, INT k, in
 		fprintf(stderr,"Pattern set can not be preprocessed in the amount of the available memory:\n");
 		fprintf(stderr,"We can hold maximum %ld keyword tree nodes, but the tree may require %ld nodes\n",
 				(long)manager->maxSetSize,(long)estimatedTotalNumberOfKmers*(manager->k+1));
-		return 1;
+		return EXIT_FAILURE;
 	}
 	
 	//allocate an array to hold all kmers and their info
 	if(!(manager->kmers =(char **)calloc(estimatedNumberOfKmers,sizeof (char *)))) 
 	{
 		fprintf(stderr,"Unable to allocate memory for kmers array.\n");
-		return 1;
+		return EXIT_FAILURE;
 	}
 
 	for(i=0;i<estimatedNumberOfKmers;i++)
@@ -64,14 +64,14 @@ int convertAllKmersIntoKWTreeReturnTree (FILE *kmersFP, int inputType, INT k, in
 		if(!(manager->kmers[i] =(char *)calloc(manager->k+1,sizeof (char *))))
 		{
 			fprintf(stderr,"Unable to allocate memory for kmer %ld.\n",(long)i);
-			return 1;
+			return EXIT_FAILURE;
 		}
 	}
 	
 	if(!(manager->kmersInfo =(KmerInfo *)calloc(estimatedNumberOfKmers,sizeof (KmerInfo)))) 
 	{
 		fprintf(stderr,"Unable to allocate memory for kmers info array.\n");
-		return 1;
+		return EXIT_FAILURE;
 	}
 
     //remember estimatedNumberOfKmers to free these arrays later
@@ -80,11 +80,11 @@ int convertAllKmersIntoKWTreeReturnTree (FILE *kmersFP, int inputType, INT k, in
 	rewind(kmersFP); 
 
 	//after this, the actual number of valid k-mers to process is in manager->originalNumberOfKmers
-	if(fillKmersArrayAndInfo(manager, kmersFP, manager->kmers, manager->kmersInfo, estimatedNumberOfKmers))
+	if(fillKmersArrayAndInfo(manager, kmersFP, manager->kmers, manager->kmersInfo, estimatedNumberOfKmers)!=EXIT_SUCCESS)
 	{
 		fprintf(stderr,"Error generating kmers array\n");
 		fclose(kmersFP);
-		return 1;
+		return EXIT_FAILURE;
 	}
 	
 	if (DEBUG_KMERS_EXTRACTION) fprintf(stderr,"Preprocessing of the input file into an array of kmers complete\n");
@@ -94,7 +94,7 @@ int convertAllKmersIntoKWTreeReturnTree (FILE *kmersFP, int inputType, INT k, in
 	if(!(manager->KWtree =(KWTNode *)calloc(maxNumberOfNodes,sizeof (KWTNode))))
 	{
 		fprintf(stderr,"Unable to allocate memory for keyword tree.\n");
-		return 1;
+		return EXIT_FAILURE;
 	}
     
 	if (DEBUG_KWTREE)
@@ -104,15 +104,15 @@ int convertAllKmersIntoKWTreeReturnTree (FILE *kmersFP, int inputType, INT k, in
     }
 
 	//pre-process patterns into a keyword tree -there duplicate k-mers get removed
-	if(buildKeywordTree(manager, manager->kmers, manager->kmersInfo))
-		return 1;
+	if(buildKeywordTree(manager, manager->kmers, manager->kmersInfo)!=EXIT_SUCCESS)
+		return EXIT_FAILURE;
 
 	if(DEBUG_KWTREE) fprintf(stderr,"BuildKeywordTree complete. totalNodes = %ld, k=%ld, totalLeaves=%ld\n", (long)manager->actualNumberOfKWTreeNodes,(long)manager->k,(long)manager->actualNumberOfLeaves);	
 	
     fprintf(stderr,"***********************************\n");
 	fprintf(stderr,"Happy end for KWTree\n");
     fprintf(stderr,"________________________________________\n\n");
-	return 0;
+	return EXIT_SUCCESS;
 }
 
 
@@ -136,11 +136,11 @@ int collectKmerInputStats(FILE *inputFP, INT k, int inputType, INT *estimatedNum
 			
 			default:
 				fprintf(stderr,"UNEXPECTED INPUT TYPE %d\n",inputType);
-				return 1;
+				return EXIT_FAILURE;
 		}		
 	}	
 	*estimatedNumberOfKmers = kmersCount;
-	return 0;
+	return EXIT_SUCCESS;
 }
 
 int fillKmersArrayAndInfo(KWTreeBuildingManager* manager, FILE *inputFP, 
@@ -173,7 +173,7 @@ int fillKmersArrayAndInfo(KWTreeBuildingManager* manager, FILE *inputFP,
 					if(kmersCounter > maxPossibleNumberOfKmers) //to avoid memory overflow
 					{
 						fprintf(stderr,"Unexpected error while extracting k-mers: too many k-mers found\n");
-						return 1;
+						return EXIT_FAILURE;
 					}
 				}
 				
@@ -181,7 +181,7 @@ int fillKmersArrayAndInfo(KWTreeBuildingManager* manager, FILE *inputFP,
             else
             {
                 fprintf(stderr,"Line %d contains non-DNA character or is less than k=%ld: %s\n",lineCounter,(long)manager->k,currentLine);
-                return 1;
+                return EXIT_FAILURE;
             }
 			lineCounter++;			
 		}
@@ -216,7 +216,7 @@ int fillKmersArrayAndInfo(KWTreeBuildingManager* manager, FILE *inputFP,
 							if(kmersCounter > maxPossibleNumberOfKmers) //to avoid memory overflow
 							{
 								fprintf(stderr,"Unexpected error while extracting k-mers: too many k-mers found\n");
-								return 1;
+								return EXIT_FAILURE;
 							}
 						}
 					}
@@ -237,7 +237,7 @@ int fillKmersArrayAndInfo(KWTreeBuildingManager* manager, FILE *inputFP,
 						if(kmersCounter > maxPossibleNumberOfKmers)
 						{
 							fprintf(stderr,"Unexpected error while extracting k-mers: too many k-mers found\n");
-							return 1;
+							return EXIT_FAILURE;
 						}
 					}
 					
@@ -249,7 +249,7 @@ int fillKmersArrayAndInfo(KWTreeBuildingManager* manager, FILE *inputFP,
                 else
                 {
                     fprintf(stderr,"Line %d contains non-DNA character or is less than k=%ld: %s\n",lineCounter,(long)manager->k,currentLine);
-                    return 1;
+                    return EXIT_FAILURE;
                 }				
 			}
 			else  //either empty line or description line
@@ -261,7 +261,7 @@ int fillKmersArrayAndInfo(KWTreeBuildingManager* manager, FILE *inputFP,
         else
         {
             fprintf(stderr,"Unexpected type of kmers input file\n");
-            return 1;
+            return EXIT_FAILURE;
         }
 	}
 	
@@ -270,8 +270,11 @@ int fillKmersArrayAndInfo(KWTreeBuildingManager* manager, FILE *inputFP,
     
 	if(manager->includeReverseComplement)
 		manager->maxNumberOfLeaves=2*manager->maxNumberOfLeaves;
-	return 0;
 
     if(DEBUG_KWTREE) fprintf(stderr,"manager->maxNumberOfLeaves=%ld\n",(long)manager->maxNumberOfLeaves);
+
+	return EXIT_SUCCESS;
+
+    
 }
 

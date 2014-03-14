@@ -27,7 +27,7 @@ int streamAndCountOneFile(KWTCounterManager *manager)
         if(!( gzFP = gzdopen ( fileno(manager->inputFP) , "r" )))
 	    {
 		    fprintf(stderr,"Could not open input file as gz for reading\n");
-		    return 1;
+		    return EXIT_FAILURE;
 	    }
 
         seq = kseq_init(gzFP);
@@ -35,10 +35,10 @@ int streamAndCountOneFile(KWTCounterManager *manager)
         // read sequences
         while(kseq_read(seq) >= 0)
 	    {
-		    if(streamOneString(manager->KWTree, seq->seq.s, seq->seq.l,&manager->substringCounts[0] ) )
+		    if(streamOneString(manager->KWTree, seq->seq.s, seq->seq.l,&manager->substringCounts[0] )!=EXIT_SUCCESS )
 		    {
 			    gzclose(gzFP);
-			    return 1;
+			    return EXIT_FAILURE;
 		    }
             validLines++;	
         }
@@ -52,22 +52,22 @@ int streamAndCountOneFile(KWTCounterManager *manager)
 	    while( fgets ( currentLine, MAX_CHARS_PER_LINE - 10,manager->inputFP) != NULL ) 
 	    {
 		    int linelen = strlen(currentLine);
-		    if(streamOneString(manager->KWTree,&currentLine[0],linelen,&manager->substringCounts[0]))
+		    if(streamOneString(manager->KWTree,&currentLine[0],linelen,&manager->substringCounts[0])!=EXIT_SUCCESS)
 		    {
 			    fclose(manager->inputFP);
-			    return 1;
+			    return EXIT_FAILURE;
 		    }	
 	    }
     }
     else if(manager->inputType == INPUT_FILE)
     {
         fprintf(stderr,"To be done later\n"); //TBD
-        return 1;
+        return EXIT_FAILURE;
     }	
     else
     {
         fprintf(stderr,"Invalid input type: %d\n",manager->inputType);
-        return 1;
+        return EXIT_FAILURE;
     }
-    return 0;	
+    return EXIT_SUCCESS;	
 }
