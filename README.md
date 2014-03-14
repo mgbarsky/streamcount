@@ -56,6 +56,7 @@ cat 'input_file' |./streamcount --kmers 'kmers_file'
 ./streamcount --kmers 'kmers_file' < 'input_file'
 
 By specifying only these two mandatory parameters, we accept the following default program behaviour:
+
 1. 'input_file' is of type FASTA. It can be compressed.
 
 2. Each line of 'kmers_file' is treated as a separate k-mer.
@@ -66,8 +67,9 @@ By specifying only these two mandatory parameters, we accept the following defau
 
 5. If the k-mers in 'kmers_file' are not unique, the information about this is supressed.
 
+***********
 Optional:
-*********
+***********
 To modify default behavior:
 
 Input options: 
