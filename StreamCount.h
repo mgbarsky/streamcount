@@ -116,6 +116,9 @@ int nextValidLineTextFile (FILE *inputFP, INT k, char *outputLine);
 #define DEBUG_KWTREE 0
 #define PRINT_KWTREE 0
 #define DEBUG_COUNTING 0
+#define PRINT_COUNTING 0
 void printPatterns(char **patterns, int numPatterns);
 void printKeywordTree (KWTNode *KWtree,INT parentID, int level );
+
+int extractKmers(FILE *inputFP, char **kmers, int k, INT *totalKMers, INT totalLines, int inputType);
 

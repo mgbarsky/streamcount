@@ -135,7 +135,7 @@ int collectKmerInputStats(FILE *inputFP, INT k, int inputType, INT *estimatedNum
 				break;
 			
 			default:
-				fprintf(stderr,"UNEXPECTED INPUT TYPE %d\n",inputType);
+				fprintf(stderr,"UNEXPECTED INPUT TYPE %d\n", inputType);
 				return EXIT_FAILURE;
 		}		
 	}	

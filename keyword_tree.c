@@ -239,7 +239,10 @@ int streamOneString(KWTNode* KWTree,char *input,int strlength,INT *patternCounts
 	{
 		currentChar = getCharValue(input[currentPositionInInput]);
 		if(currentChar<0)
-			invalidChar=1;
+		{
+            currentNodeID = 0; //re-start from the root
+            currentPositionInInput++;
+        }
 		else
 		{
 			//case 1: there is a child currentChar out of a current node - we follow the path down the tree

@@ -237,6 +237,7 @@ int main(int argc, char *argv[])
     //**************************************
     //TTT. first, extract k-mers and build a kw-tree - in RAM, without writing to disk
     //*************************************
+    if(DEBUG_KMERS_EXTRACTION)         fprintf(stderr,"K-mers file is %s\n",kmersFileName);
     if(convertAllKmersIntoKWTreeReturnTree (kmersFP,  kmersInputType,  k,  includeRC,  memoryMB, &kwtreemanager)!=EXIT_SUCCESS)
 		return endProgram(EXIT_FAILURE, indicateEnd, endFile );
 
@@ -271,6 +272,13 @@ int main(int argc, char *argv[])
     if(streamAndCountOneFile(&manager)!=EXIT_SUCCESS)
 			return endProgram(EXIT_FAILURE, indicateEnd, endFile );
 
+if(PRINT_COUNTING)
+{
+    for(i=0; i< manager.numberOfKWTreeLeaves; i++)
+    {   
+        fprintf(stderr,"%ld\n",(long)manager.substringCounts[i]);
+    }
+}
     fprintf(stderr,"*************************************\n");
 	fprintf(stderr,"Counting complete\n");
     fprintf(stderr,"________________________________________\n\n");
@@ -285,8 +293,7 @@ int main(int argc, char *argv[])
 		fprintf(stderr,"Unable to allocate memory to hold %ld k-mer counters.\n",(long)kwtreemanager.originalNumberOfKmers );
 		return endProgram(EXIT_FAILURE, indicateEnd, endFile );
 	}      
-    
-    
+        
     if(combineSubstringCountsIntoKmersCounts(manager.numberOfKWTreeLeaves,manager.substringCounts,
         kwtreemanager.originalNumberOfKmers, kwtreemanager.kmersInfo,   kmersCounts, includeRC )!=EXIT_SUCCESS)
     {

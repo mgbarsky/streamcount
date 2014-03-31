@@ -14,6 +14,8 @@ int getCharValue(char c); //returns 0,1,2,3 for a(A),c(C),g(G),t(T), returns -1 
 //char getCharFromNumber(int n); //returns A,C,G,T for 0,1,2,3, terminates program if something else is requested
 int produceReverseComplement(char *pattern, char *rcPattern); //produces char array rcPattern, complementary to char array pattern read in reverse order. Returns 1 if invalid (non-DNA character) encountered
 
+int fillKMersArray(FILE *inputFP, char **kmers, int k, long *totalKMers, double frequency, int inputType);
+
 int endProgram(int exitStatus, int indicateEnd, FILE *endFile );
 
 
