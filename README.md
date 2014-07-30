@@ -17,12 +17,12 @@ To increase this limit, redefine SC_INT as int64_t and recompile.
 *************
 Dependencies:
 *************
-zlib
+<pre> <code>zlib</code> </pre>
 
 *************
 To compile:
 *************
-make
+<pre> <code>make</code> </pre>
 
 ************
 To run:
@@ -38,7 +38,7 @@ PROGRAM ARGUMENTS
 Mandatory:
 **********
 
---kmers 'kmers_file'
+<pre> <code>--kmers 'kmers_file'</code> </pre>
 
 where 'kmers_file' is the full path and file name of the file from which to extract the k-mers.
 NOTE: The file with k-mers should contain only characters from a valid DNA alphabet. 
