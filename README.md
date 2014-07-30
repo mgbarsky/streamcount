@@ -1,5 +1,4 @@
 <h1>streamcount</h1>
-===========
 This is a program which counts occurences of k-mers (strings of length k characters) 
 in an arbitrarily large input.
 
@@ -16,23 +15,18 @@ To increase this limit, redefine SC_INT as int64_t and recompile.
 
 
 <h2>Dependencies:</h2>
-=============
 <pre> <code>zlib</code> </pre>
 
 <h2>To compile:</h2>
-=============
 <pre> <code>make</code> </pre>
 
 <h2>To run:</h2>
-=============
-If you add a path to the compiled streamcount to your PATH variable, 
+th to the compiled streamcount to your PATH variable, 
 it can be run as a standard unix command: streamcount
 
 <h2>Program arguments</h2>
-==================
 
 <h3>Required:</h3>
-==========
 <pre> <code>--kmers 'kmers_file'</code> </pre>
 where 'kmers_file' is the full path and file name of the file from which to extract the k-mers.
 <br>NOTE: The file with k-mers should contain only characters from a valid DNA alphabet. 
@@ -57,11 +51,8 @@ By specifying only these two parameters, we accept the following default program
 </ol>
 
 <h3>Optional:</h3>
-=========
-To modify default behavior:
 
 <h4>Input options:</h4>
--------------
 <pre> <code>-k='k'</code> </pre>
 length of each k-mer. 
 If there are more than one k-mer in each input line, all of them will be considered. 
@@ -79,7 +70,6 @@ It is optimal to define the number of threads as the number of cores.
 Maximum number of threads is set to 8. It can be redefined in common.h line 23 
  
 <h4>Counting options:</h4>
------------------ 
 <pre> <code>--no-rc</code> </pre> 
 do not include count of reverse complement into final count of each k-mer. 
 This option can be useful when counting k-mers in a genomic sequence.
@@ -91,7 +81,6 @@ This is used to estimate if you can hold k-mers index prior to processing.
 Default: 4000MB
 
 <h4>Output options:</h4>
---------------- 
 <pre> <code>--printseq</code> </pre>
 print each original line of 'kmers_file' before its count(s). 
 
@@ -102,8 +91,6 @@ This is used if you need a precise count for all k-mers extracted from the same 
 Because the same k-mer occurs also on a different line, the counts of consecutive k-mers are distorted.
 
 <h2>Sample usage:</h2>
-=============
-    
 In folder sample_data.zip there are one sample input file, and one k-mers file.
 Folder also contains SAMPLE_RUNS.txt with examples of running streamcount.
 
