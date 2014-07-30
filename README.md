@@ -10,9 +10,9 @@ In the second part, each line of an input file is streamed through the keyword t
 and the counters of the corresponding k-mers for this file are collected.
 
 The number of k-mers which can be simultaneously counted is limited by the amount of the available RAM.
-The number is also limited by the use of the signed integer INT defined as int32_t on lines 13, 15 of StreamCount.h.
+The number is also limited by the use of the signed integer SC_INT defined as int32_t on line 18 of common.h.
 With this definition, we can build an index for at most Int32.MaxValue/k input k-mers.
-To increase this limit, redefine INT as int64_t and recompile.
+To increase this limit, redefine SC_INT as int64_t and recompile.
 
 *************
 Dependencies:
@@ -41,7 +41,7 @@ Mandatory:
 --kmers 'kmers_file'
 
 where 'kmers_file' is the full path and file name of the file from which to extract the k-mers.
-The file with k-mers should contain only characters from a valid DNA alphabet. 
+NOTE: The file with k-mers should contain only characters from a valid DNA alphabet. 
 This should be dealt with prior to running the program.
 
 -i --input 'input_file'
@@ -67,6 +67,8 @@ By specifying only these two mandatory parameters, we accept the following defau
 
 5. If some k-mers in 'kmers_file' are not unique, the information about this is supressed.
 
+6. Multi-threaded execution in DEFAULT_NUMBER_OF_THREADS defined on line 24 in common.h.
+
 ***********
 Optional:
 ***********
@@ -87,6 +89,12 @@ extract k-mers from 'kmers_file' treating the entire file as one string
 --input-plain-text
 
 treat input as text lines, rather than FASTA.
+
+--t
+
+number of threads for multi-threaded processing. 
+It is optimal to define the number of threads as the number of cores. 
+Maximum number of threads is set to 8. It can be redefined in common.h line 23 
  
 Counting options:
 ***************** 
@@ -111,7 +119,15 @@ print each original line of 'kmers_file' before its count(s).
 --repeat-mask-tofile='repeat-mask-file'
 
 for each k-mer prints to 'repeat-mask-file' 0 or 1. 
-1 is printed if this k-mer is not unique (repeats) in the 'kmers_file'
+1 is printed if this k-mer is not unique (repeats) in the 'kmers_file'.
+This is used if you need a precise count for all k-mers extracted from the same line. 
+Because the same k-mer occurs also on a different line, the counts of consecutive k-mers are distorted.
+
+*************
+Sample usage:
+*************
     
+In folder sample_data.zip there are 2 sample input files, and one k-mers file.
+Folder also contains SAMPLE_RUNS.txt with examples of running streamcount.
 
 
