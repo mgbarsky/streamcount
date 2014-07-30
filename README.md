@@ -1,5 +1,5 @@
 <h1>streamcount</h1>
-This is a program which counts occurences of k-mers (strings of length k characters) 
+This is a program which counts occurences of <em>k</em>-mers (strings of length <em>k</em> characters) 
 in an arbitrarily large input.
 
 The program first takes a set of pattern strings, breaks the strings into k-mers, 
@@ -21,7 +21,7 @@ To increase this limit, redefine SC_INT as int64_t and recompile.
 <pre> <code>make</code> </pre>
 
 <h2>To run:</h2>
-th to the compiled streamcount to your PATH variable, 
+If you add a path to the compiled streamcount to your PATH variable, 
 it can be run as a standard unix command: streamcount
 
 <h2>Program arguments</h2>
@@ -47,51 +47,56 @@ By specifying only these two parameters, we accept the following default program
 <li>The final count for each k-mer includes a count for its reverse complement string.</li>
 <li>The final counts for each k-mer are written to stdout, one count per line.</li>
 <li>If some k-mers in 'kmers_file' are not unique, the information about this is supressed.</li>
-<li>Multi-threaded execution with DEFAULT_NUMBER_OF_THREADS defined on line 24 in common.h.</li>
+<li>Counting is performed with DEFAULT_NUMBER_OF_THREADS defined on line 24 in common.h.</li>
 </ol>
 
 <h3>Optional:</h3>
 
 <h4>Input options:</h4>
+<h5>length of each k-mer</h5>
 <pre> <code>-k='k'</code> </pre>
-length of each k-mer. 
 If there are more than one k-mer in each input line, all of them will be considered. 
 In this case, output for each line will consist of a line of comma-separated counts
 
+<h5>type of k-mers input</h5>
 <pre> <code>--kmers-multiline</code> </pre>
-extract k-mers from 'kmers_file' treating the entire file as one string
+This will extract k-mers from 'kmers_file' treating the entire file as one string
 
+<h5>type of input file</h5>
 <pre> <code>--input-plain-text</code> </pre>
-treat input as text lines, rather than FASTA.
+This will treat input as text lines, rather than FASTA.
 
+<h5>number of threads</h5>
 <pre> <code>--t</code> </pre>
-number of threads for multi-threaded processing. 
 It is optimal to define the number of threads as the number of cores. 
 Maximum number of threads is set to 8. It can be redefined in common.h line 23 
  
 <h4>Counting options:</h4>
+<h5>reverse complement</h5>
 <pre> <code>--no-rc</code> </pre> 
-do not include count of reverse complement into final count of each k-mer. 
-This option can be useful when counting k-mers in a genomic sequence.
+This will not include count of reverse complement into final count of each k-mer. 
+This option can be useful when counting k-mers in a genomic sequence, rather than in set of reads.
 
+<h5>memory in MB</h5>
 <pre> <code>-m,     --mem='MEMORY_MB'</code> </pre>
-amount of memory available for indexing k-mers. 
 Specify the amount of memory (in MB) that you are ready to sacrifice to hold a k-mer index. 
 This is used to estimate if you can hold k-mers index prior to processing. 
 Default: 4000MB
 
 <h4>Output options:</h4>
+<h5>print options</h5>
 <pre> <code>--printseq</code> </pre>
-print each original line of 'kmers_file' before its count(s). 
+Prints each original line of 'kmers_file' before its count(s). 
 
+<h5>mark repeats</h5>
 <pre> <code>--repeat-mask-tofile='repeat-mask-file'</code> </pre>
-for each k-mer prints to 'repeat-mask-file' 0 or 1. 
+For each k-mer, prints to 'repeat-mask-file' 0 or 1. 
 1 is printed if this k-mer is not unique (repeats) in the 'kmers_file'.
 This is used if you need a precise count for all k-mers extracted from the same line. 
-Because the same k-mer occurs also on a different line, the counts of consecutive k-mers are distorted.
+Because the same k-mer occurs also on a different line, the counts of consecutive k-mers could be distorted.
 
 <h2>Sample usage:</h2>
-In folder sample_data.zip there are one sample input file, and one k-mers file.
+In folder 'sample_data.zip' there are one sample input file, and one k-mers file.
 Folder also contains SAMPLE_RUNS.txt with examples of running streamcount.
 
 
