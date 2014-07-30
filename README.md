@@ -127,7 +127,7 @@ Because the same k-mer occurs also on a different line, the counts of consecutiv
 Sample usage:
 *************
     
-In folder sample_data.zip there are 2 sample input files, and one k-mers file.
+In folder sample_data.zip there are one sample input file, and one k-mers file.
 Folder also contains SAMPLE_RUNS.txt with examples of running streamcount.
 
 
