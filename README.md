@@ -79,7 +79,7 @@ It is optimal to define the number of threads as the number of cores.
 Maximum number of threads is set to 8. It can be redefined in common.h line 23 
  
 Counting options:
-***************** 
+----------------- 
 <pre> <code>--no-rc</code> </pre> 
 do not include count of reverse complement into final count of each k-mer. 
 This option can be useful when counting k-mers in a genomic sequence.
