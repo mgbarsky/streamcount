@@ -33,22 +33,17 @@ Program parameters
 
 Required:
 =========
-
 <pre> <code>--kmers 'kmers_file'</code> </pre>
-
 where 'kmers_file' is the full path and file name of the file from which to extract the k-mers.
 <br>NOTE: The file with k-mers should contain only characters from a valid DNA alphabet. 
 This should be dealt with prior to running the program.
 
 <pre> <code>-i --input 'input_file'</code> </pre>
-
 where 'input_file' is the full path and file name of the file where to count the k-mers.
-
 If the input option is not specified, the program tries to read the input text from stdin.
 In this case, the following commands are valid:
 
 <pre> <code>cat 'input_file' |./streamcount --kmers 'kmers_file'</code> </pre>
-
 <pre> <code>./streamcount --kmers 'kmers_file' < 'input_file'</code> </pre>
 
 By specifying only these two parameters, we accept the following default program behaviour:
@@ -68,21 +63,17 @@ To modify default behavior:
 Input options: 
 -------------
 <pre> <code>-k='k'</code> </pre>
-
 length of each k-mer. 
 If there are more than one k-mer in each input line, all of them will be considered. 
 In this case, output for each line will consist of a line of comma-separated counts
 
 <pre> <code>--kmers-multiline</code> </pre>
-
 extract k-mers from 'kmers_file' treating the entire file as one string
 
 <pre> <code>--input-plain-text</code> </pre>
-
 treat input as text lines, rather than FASTA.
 
 <pre> <code>--t</code> </pre>
-
 number of threads for multi-threaded processing. 
 It is optimal to define the number of threads as the number of cores. 
 Maximum number of threads is set to 8. It can be redefined in common.h line 23 
@@ -90,12 +81,10 @@ Maximum number of threads is set to 8. It can be redefined in common.h line 23
 Counting options:
 ***************** 
 <pre> <code>--no-rc</code> </pre> 
-
 do not include count of reverse complement into final count of each k-mer. 
 This option can be useful when counting k-mers in a genomic sequence.
 
 <pre> <code>-m,     --mem='MEMORY_MB'</code> </pre>
-
 amount of memory available for indexing k-mers. 
 Specify the amount of memory (in MB) that you are ready to sacrifice to hold a k-mer index. 
 This is used to estimate if you can hold k-mers index prior to processing. 
@@ -104,11 +93,9 @@ Default: 4000MB
 Output options: 
 --------------- 
 <pre> <code>--printseq</code> </pre>
-
 print each original line of 'kmers_file' before its count(s). 
 
 <pre> <code>--repeat-mask-tofile='repeat-mask-file'</code> </pre>
-
 for each k-mer prints to 'repeat-mask-file' 0 or 1. 
 1 is printed if this k-mer is not unique (repeats) in the 'kmers_file'.
 This is used if you need a precise count for all k-mers extracted from the same line. 
