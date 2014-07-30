@@ -28,8 +28,8 @@ To run:
 If you add a path to the compiled streamcount to your PATH variable, 
 it can be run as a standard unix command: streamcount
 
-PROGRAM ARGUMENTS
-=================
+Program parameters
+==================
 
 Required:
 =========
