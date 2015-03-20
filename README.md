@@ -67,7 +67,7 @@ This will extract k-mers from 'kmers_file' treating the entire file as one strin
 This will treat input as text lines, rather than FASTA.
 
 <h5>number of threads</h5>
-<pre> <code>--t</code> </pre>
+<pre> <code>-t</code> </pre>
 It is optimal to define the number of threads as the number of cores. 
 Maximum number of threads is set to 8. It can be redefined in common.h line 23 
  
