@@ -14,11 +14,10 @@ MTFLAG += -std=c99
 SC_SRC=common.c dna_common.c keyword_tree.c kmers_to_kwtree.c count_kmers.c streamcount.c
 
 # Binaries
-all: streamcount
+all: streamcount 
 
 #streams the lines of the input file (in any format - fasta, text, compressed) and counts k-mers
 streamcount: $(SC_SRC)
 	$(CC) $(CFLAGOPT) $(CFLAGOFFSET) $(CFLAGS) $(MTFLAG) $^ -o $@ $(LDFLAGS)
-
 clean:  
-	rm streamcount
+	rm streamcount 

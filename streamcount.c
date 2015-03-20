@@ -22,6 +22,7 @@ and prints the result according to user-specified options.
 #define OPT_PRINT_SEQ 5
 #define OPT_REPEAT_MASK 6
 #define OPT_NUM_THREADS 7
+#define OPT_SAVE_TREE 8
 
 static const char *shortOpts = "hk:i:m:t:e";        
 
@@ -37,6 +38,7 @@ static const struct option longOpts[] = {
 	{ "printseq", no_argument, NULL, OPT_PRINT_SEQ },
 	{ "repeat-mask-tofile", required_argument, NULL, OPT_REPEAT_MASK },
     { "t", required_argument, NULL, OPT_NUM_THREADS },
+    { "kwtree", required_argument, NULL, OPT_SAVE_TREE },
     { "e", no_argument, NULL, 'e' },
 	{ NULL, no_argument, NULL, 0 }
 };
@@ -64,6 +66,7 @@ void display_usage()
     "  -t arg (=6)                  number of threads\n"
     "  --printseq (=false)          print line of --kmers file before count\n"
     "  --repeat-mask-tofile arg     print 0 or 1 (1 for repeating k-mer). \n"
+    "  --kwtree arg                 saves binary image of kwtree to a file arg \n"
     "  -e                           writes to file exit status\n\n";
     
     printf("%s", USAGE_STRING);
@@ -98,6 +101,7 @@ int main(int argc, char *argv[]) {
     char currentLine[MAX_CHARS_PER_LINE];
     char validLine[MAX_CHARS_PER_LINE];
     KWTreeBuildingManager kwtreemanager; //bookkeper for indexing
+    kwtreemanager.saveTree = 0;
     KWTCounterManager manager; //bookkeper for counting
     manager.numberOfThreads=DEFAULT_NUMBER_OF_THREADS;
     
@@ -151,6 +155,11 @@ int main(int argc, char *argv[]) {
             
             case 't':
 				manager.numberOfThreads=atoi(optarg); 
+                break;
+
+            case OPT_SAVE_TREE:				
+                kwtreemanager.saveTree = 1;
+                kwtreemanager.kwtreeFileName = optarg;
                 break;
 
             case 'e':

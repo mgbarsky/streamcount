@@ -25,6 +25,8 @@ typedef struct KWTreeBuildingManager
 	KWTNode *KWtree; //keyword tree holding all patterns to be counted
 	KmerInfo *kmersInfo; //string and mapping information about each k-mer
     char **kmers; //actual strings
+    char *kwtreeFileName;
+    int saveTree;
 }KWTreeBuildingManager;
 
 //for breadth first traversal of the tree - to add suffix links
@@ -41,6 +43,6 @@ int buildKeywordTree (KWTreeBuildingManager *manager, char ** patterns, KmerInfo
 int addSuffixLinks (KWTNode *tree, SC_INT totalNodes);
 
 //streaming through the tree
-int streamOneString(KWTNode* KWTree,char *input,int strlength,SC_INT *patternCounts);
-int streamOneStringMT(KWTNode* KWTree,char *input,int strlength,SC_INT *patternCounts); //multi-threaded version
+int streamOneString(KWTNode* KWTree,char *input, int strlength, SC_INT *patternCounts);
+int streamOneStringMT(KWTNode* KWTree, char *input, int strlength, SC_INT *patternCounts); //multi-threaded version
 #endif

@@ -3,6 +3,15 @@
 // Initialize KSEQ reader
 KSEQ_INIT(gzFile, gzread)
 
+void printBuffer (BufferCell *buffer, int length, long linenumber)
+{
+	fprintf(stderr, "Buffer for multi-threading of %d elements:\n", length);
+	for (int i=0; i< length; i++)
+	{
+		fprintf (stderr, "Line number: %ld - %d,%s\n", linenumber, buffer[i].len, buffer[i].seq);
+	}
+	fprintf(stderr, "--------------------\n\n");
+}
 int streamAndCountOneFile(KWTCounterManager *manager) {	
 	//MT - set number of threads
     if(manager->numberOfThreads > 1)
@@ -14,7 +23,7 @@ int streamAndCountOneFile(KWTCounterManager *manager) {
     gzFile gzFP; 
     kseq_t* seq;
         
-    SC_INT validLines=0; //counter of processed lines
+    long validLines=0; //counter of processed lines
     
     size_t PER_THREAD = 128; //128 lines are submitted to each thread job
     size_t N_BUFFER = MIN (manager->numberOfThreads,MAX_NUMBER_OF_THREADS)*PER_THREAD; //upto MAX_NUMBER_OF_THREADS threads max
@@ -57,21 +66,33 @@ int streamAndCountOneFile(KWTCounterManager *manager) {
             while (!done_reading)  {
                 if(kseq_read(seq) >= 0)   {
                     int newLen = seq->seq.l;
-                    if (newLen > buffer[buffer_index].len) //re-allocate memory to hold the string                    
-                        buffer[buffer_index].seq = malloc(newLen * sizeof(char));                    
+					
+                    if (newLen != buffer[buffer_index].len) //re-allocate memory to hold the string 
+					{
+						if (buffer[buffer_index].seq == NULL) //first-time allocation                   
+                        	buffer[buffer_index].seq = malloc((newLen+1) * sizeof(char)); 
+						else //reallocation
+							buffer[buffer_index].seq = realloc (buffer[buffer_index].seq , (newLen+1) * sizeof(char)); 						
+					}
+					         
                     buffer[buffer_index].len = seq->seq.l;
-                    strcpy (buffer[buffer_index++].seq,seq->seq.s);
+					
+                    strcpy (buffer[buffer_index].seq,seq->seq.s);
+					buffer[buffer_index].seq[buffer[buffer_index].len]='\0';
+					buffer_index++;
                     validLines++; 
 
                     if (validLines % 100000 == 0)
-                        fprintf (stderr, "\rProcessed sequence %ld of the input file", (long) validLines );          
+                        fprintf (stderr, "\rProcessed sequence %ld of the input file", (long) validLines ); 
+					//if (validLines > 273040000)
+					//	printBuffer (&buffer[0], buffer_index, validLines)  ;    
                 }
                 else
                     done_reading = 1;                   
 
                 if (buffer_index == N_BUFFER || done_reading) {                
                     #pragma omp parallel for schedule(dynamic, PER_THREAD)                 
-                    for(size_t i=0; i < N_BUFFER; ++i)       {
+                    for(size_t i=0; i < buffer_index; ++i)       {
 		                int thread_result = streamOneStringMT(manager->KWTree, buffer[i].seq, buffer[i].len,&manager->substringCounts[0] ); 
                         if (result == EXIT_SUCCESS)
                             result = thread_result;                                      
@@ -109,9 +130,17 @@ int streamAndCountOneFile(KWTCounterManager *manager) {
                 if(fgets ( currentLine, MAX_CHARS_PER_LINE - 10, manager->inputFP) != NULL )  {
                     int newLen = strlen(currentLine);
                     if (newLen > buffer[buffer_index].len) //re-allocate memory to hold the string                    
-                        buffer[buffer_index].seq = malloc(newLen * sizeof(char));                    
+                    if (newLen != buffer[buffer_index].len) //re-allocate memory to hold the string 
+					{
+						if (buffer[buffer_index].seq == NULL) //first-time allocation                   
+                        	buffer[buffer_index].seq = malloc((newLen+1) * sizeof(char)); 
+						else //reallocation
+							buffer[buffer_index].seq = realloc (buffer[buffer_index].seq , (newLen+1) * sizeof(char)); 						
+					}                       
                     buffer[buffer_index].len = newLen;
-                    strcpy (buffer[buffer_index++].seq,currentLine);
+                    strcpy (buffer[buffer_index].seq,currentLine);
+					buffer[buffer_index].seq[buffer[buffer_index].len]='\0';
+					buffer_index++;
 
                     validLines++;
                     if (validLines % 100000 == 0)
@@ -122,7 +151,7 @@ int streamAndCountOneFile(KWTCounterManager *manager) {
 
                 if(buffer_index == N_BUFFER || done_reading) {                
                     #pragma omp parallel for schedule(dynamic, PER_THREAD)                 
-                    for(size_t i=0; i < N_BUFFER; ++i)       {
+                    for(size_t i=0; i < buffer_index; ++i)       {
 		                int thread_result = streamOneStringMT(manager->KWTree, buffer[i].seq, buffer[i].len,&manager->substringCounts[0] ); 
                         if (result == EXIT_SUCCESS)
                             result = thread_result;                                      
@@ -132,9 +161,7 @@ int streamAndCountOneFile(KWTCounterManager *manager) {
 		                return EXIT_FAILURE;
 	                   
                     buffer_index=0;
-                }                
-                
-                
+                }    
             }  
         }
     }

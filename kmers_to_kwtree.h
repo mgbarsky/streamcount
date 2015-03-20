@@ -18,4 +18,6 @@ int collectKmerInputStats(FILE *inputFP, SC_INT k, int inputType, SC_INT *estima
 //builds kw tree index from all k-mers
 int convertAllKmersIntoKWTree (char *kmersFileName, int inputType, SC_INT k, int includeRC, SC_INT memoryMB);
 
+//saves binary tree to file for future use
+int  saveTreeAndMapping (char *kwtreeFileName, KWTNode *KWtree, SC_INT totalNodes, KmerInfo *kmersInfo, SC_INT totalKmers);
 #endif

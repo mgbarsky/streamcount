@@ -86,7 +86,11 @@ int convertAllKmersIntoKWTreeReturnTree (FILE *kmersFP, int inputType,
 	//pre-process patterns into a keyword tree - there duplicate k-mers get removed by design
 	if (buildKeywordTree (manager, manager->kmers, manager->kmersInfo) != EXIT_SUCCESS)
 		return EXIT_FAILURE;
-
+    
+    if (manager->saveTree)
+    {
+        saveTreeAndMapping (manager->kwtreeFileName, manager->KWtree, manager->actualNumberOfKWTreeNodes, manager->kmersInfo, manager->originalNumberOfKmers);
+    }
 	if(DEBUG_KWTREE) 
         fprintf(stderr,"BuildKeywordTree complete. totalNodes = %ld, k=%ld, totalLeaves=%ld\n", 
             (long)manager->actualNumberOfKWTreeNodes,(long)manager->k,(long)manager->actualNumberOfLeaves);	
@@ -245,4 +249,59 @@ int fillKmersArrayAndInfo(KWTreeBuildingManager* manager, FILE *inputFP,
 
 	return EXIT_SUCCESS;
 }
+
+int  saveTreeAndMapping (char *kwtreeFileName, KWTNode *KWtree, SC_INT totalNodes, KmerInfo *kmersInfo, SC_INT totalKmers)
+{
+    int i=0;
+    
+    char infoFileName [MAX_PATH_LENGTH];
+    snprintf ( infoFileName, MAX_PATH_LENGTH, "%s_KWTREE_INFO.csv", kwtreeFileName);
+    
+    FILE *fpinfo;
+    fpinfo=fopen(infoFileName, "w");
+    if(!(fpinfo= fopen ( infoFileName, "w" ))) {
+        fprintf(stderr,"Could not open file \"%s\" for writing kwtree info \n", infoFileName);
+        return EXIT_FAILURE;
+    }
+    
+    for( i = 0; i < totalKmers; i++) {
+        fprintf(fpinfo, "%d,%d,%d,%d\n",(int)(kmersInfo[i].counterID),(int)(kmersInfo[i].rcCounterID),(int)(kmersInfo[i].startPosInLine),(int)(kmersInfo[i].lineNumber));
+    }
+    fclose (fpinfo);
+
+
+    FILE *fp;
+    if(!(fp= fopen ( kwtreeFileName, "wb" ))) {
+        fprintf(stderr,"Could not open file \"%s\" for writing kwtree \n", kwtreeFileName);
+        return EXIT_FAILURE;
+    }
+
+    size_t written = fwrite(KWtree, sizeof(KWTNode), totalNodes, fp);
+    if (written != (size_t)totalNodes) {
+        fprintf(stderr,"Not all k-mers have been written \n");
+        return EXIT_FAILURE;
+    }
+    fclose (fp);
+
+    return EXIT_SUCCESS;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

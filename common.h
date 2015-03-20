@@ -99,6 +99,6 @@ int nextValidLineTextFile (FILE *inputFP, SC_INT k, char *outputLine);
 //this is designed to allow to write an exit status of each run of streamcount (success or failure) into a file
 //so when performing parallel processing on cluster you know when all jobs are terminated and whether they were successful
 int endProgram(int exitStatus, int indicateEnd, FILE *endFile );
-
+int extractKmers(FILE *inputFP, char **kmers, SC_INT k, SC_INT *totalKMers, SC_INT totalLines, int inputType);
 #endif
 
