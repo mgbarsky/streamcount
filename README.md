@@ -16,6 +16,7 @@ To increase this limit, redefine SC_INT as int64_t and recompile.
 
 <h2>Dependencies:</h2>
 <pre> <code>zlib</code> </pre>
+To install: apt-get install zlib1g-dev
 
 <h2>To compile:</h2>
 <pre> <code>make</code> </pre>
